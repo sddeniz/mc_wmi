@@ -1,0 +1,37 @@
+{
+  "methodName":"prc_get_balance",
+  "inputs":[
+    {
+      "dbName":"p_tel_num",
+      "apiName":"telNum",
+      "type":"NUMERIC",
+      "length":null
+    },
+    {
+      "dbName":"p_sim_type",
+      "apiName":"simType",
+      "type":"NUMERIC",
+      "length": null
+    },
+    {
+      "dbName":"p_gw",
+      "apiName":"gw",
+      "type":"VARCHAR",
+      "length": "10"
+    }
+  ],
+  "outputs":[
+    {
+      "dbName":"p_response_type",
+      "apiName":"responseType",
+      "type":"NUMERIC",
+      "length":null
+    },
+    {
+      "dbName":"p_response_desc",
+      "apiName":"responseDesc",
+      "type":"VARCHAR",
+      "length":null
+    }
+  ]
+}
