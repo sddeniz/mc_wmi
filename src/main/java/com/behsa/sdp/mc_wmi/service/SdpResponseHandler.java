@@ -25,32 +25,46 @@ public class SdpResponseHandler implements ISdpHandlerAsync {
 
     @Override
     public void OnReceive(JSONObject jsonObject, String s, JSONObject jsonObject1, String s1, long l, String s2) throws SdpMsException {
-        System.out.println(jsonObject);
-        JSONObject res = new JSONObject();
-        SessionModel session = sessionManager.getSession(s);
-        String metaDataStr = session.getMetaData();
-        MetaData metaData = gson.fromJson(metaDataStr, MetaData.class);
-        for (MetaDataOutput output : metaData.getOutputs()) {
-            String valueStr = jsonObject.get(output.getApiName()).toString();
-            switch (output.getType()){
-                case "DATE":
-                    Date date = new Date(Long.parseLong(valueStr));
-                    res.put(output.getApiName(), date);
-                    break;
-                case "NUMERIC":
-                    long longVal = Long.parseLong(valueStr);
-                    res.put(output.getApiName(), longVal);
-                    break;
-                case "VARCHAR":
-                    res.put(output.getApiName(), valueStr);
-                    break;
-                case "CLOB":
-                    res.put(output.getApiName(), valueStr);
-                    break;
+        try {
+            System.out.println(jsonObject);
+            JSONObject res = new JSONObject();
+            SessionModel session = sessionManager.getSession(s);
+            String metaDataStr = jsonObject.get("metadata").toString();
+            MetaData metaData = gson.fromJson(metaDataStr, MetaData.class);
+            for (MetaDataOutput output : metaData.getOutputs()) {
+                String valueStr = jsonObject.get(output.getApiName()).toString();
+
+                switch (output.getType()) {
+                    case "DATE":
+                        if(valueStr == null || "".equals(valueStr)){
+                            res.put(output.getApiName(), null);
+                        }else {
+                            Date date = new Date(Long.parseLong(valueStr));
+                            res.put(output.getApiName(), date);
+                        }
+                        break;
+                    case "NUMERIC":
+                        if(valueStr == null || "".equals(valueStr)){
+                            res.put(output.getApiName(), null);
+                        }else {
+                            long longVal = Long.parseLong(valueStr);
+                            res.put(output.getApiName(), longVal);
+                        }
+                        break;
+                    case "VARCHAR":
+                        res.put(output.getApiName(), valueStr);
+                        break;
+                    case "CLOB":
+                        res.put(output.getApiName(), valueStr);
+                        break;
+                }
             }
+            ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(res, HttpStatus.OK);
+            session.getDeferredResult().setResult(jsonObjectResponseEntity);
+            sessionManager.removeSession(s);
         }
-        ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(res, HttpStatus.OK);
-        session.getDeferredResult().setResult(jsonObjectResponseEntity);
-        sessionManager.removeSession(s);
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

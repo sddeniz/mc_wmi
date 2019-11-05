@@ -30,12 +30,8 @@ public class RestInterface {
     public @ResponseBody
     DeferredResult<ResponseEntity<?>> createApplet(@PathVariable("method") String method, @RequestBody JSONObject inputs) throws Exception {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
-        String metaData = metaDataLoader.getMetaData(method);
-        MetaData metaDataObj = gson.fromJson(metaData, MetaData.class);
-        String metaJson = gson.toJson(metaDataObj);
-        inputs.put("metadata", metaJson);
         inputs.put("method", method);
-        SessionModel sessionModel = new SessionModel(output, metaData);
+        SessionModel sessionModel = new SessionModel(output, null);
         String trackCode = UUID.randomUUID().toString();
         sessionManager.setSession(trackCode, sessionModel);
         sdpHelper.sendStartProcess("wmi", "wmi_trigger", null, inputs, null, trackCode);
