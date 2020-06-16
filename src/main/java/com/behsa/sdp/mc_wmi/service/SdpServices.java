@@ -1,5 +1,6 @@
 package com.behsa.sdp.mc_wmi.service;
 
+import com.behsa.sdp.mc_wmi.common.ServiceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sdpMsSdk.SdpHelper;
@@ -11,15 +12,20 @@ import java.io.IOException;
 public class SdpServices {
 
     @Autowired
-    SdpHelper sdpHelper;
+    private SdpHelper sdpHelper;
+    @Autowired
+    private ServiceUtils serviceUtils;
 
     @Autowired
-    private SdpResponseHandler sdpResponseHandler;
+    private TriggerSyncResponse triggerSyncResponse;
+    @Autowired
+    private ContinueResponse continueResponse;
 
     @PostConstruct
     private void initialize() {
         try {
-            sdpHelper.startConsumeAsync("wmi/wmi_response", 1, false, sdpResponseHandler);
+            sdpHelper.startConsumeAsync("sdp_crm/api_response/"+serviceUtils.getServiceInstanceKey(), 1, true, triggerSyncResponse);
+            sdpHelper.startConsumeAsync("sdp_crm/api_continued_response/"+serviceUtils.getServiceInstanceKey(), 1, true, continueResponse);
         } catch (IOException e) {
             e.printStackTrace();
         }

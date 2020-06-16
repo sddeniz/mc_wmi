@@ -2,6 +2,7 @@ package com.behsa.sdp.mc_wmi.service;
 
 import com.behsa.sdp.mc_wmi.common.SessionManager;
 import com.behsa.sdp.mc_wmi.dto.MetaData;
+import com.behsa.sdp.mc_wmi.dto.MetaDataInOut;
 import com.behsa.sdp.mc_wmi.dto.MetaDataOutput;
 import com.behsa.sdp.mc_wmi.dto.SessionModel;
 import com.google.gson.Gson;
@@ -34,37 +35,48 @@ public class SdpResponseHandler implements ISdpHandlerAsync {
             for (MetaDataOutput output : metaData.getOutputs()) {
                 String valueStr = jsonObject.get(output.getApiName()).toString();
 
-                switch (output.getType()) {
-                    case "DATE":
-                        if(valueStr == null || "".equals(valueStr)){
-                            res.put(output.getApiName(), null);
-                        }else {
-                            Date date = new Date(Long.parseLong(valueStr));
-                            res.put(output.getApiName(), date);
-                        }
-                        break;
-                    case "NUMERIC":
-                        if(valueStr == null || "".equals(valueStr)){
-                            res.put(output.getApiName(), null);
-                        }else {
-                            long longVal = Long.parseLong(valueStr);
-                            res.put(output.getApiName(), longVal);
-                        }
-                        break;
-                    case "VARCHAR":
-                        res.put(output.getApiName(), valueStr);
-                        break;
-                    case "CLOB":
-                        res.put(output.getApiName(), valueStr);
-                        break;
-                }
+                createOutput(res, output.getApiName(), valueStr, output.getType());
+            }
+            for (MetaDataInOut inOut : metaData.getInouts()) {
+                String valueStr = jsonObject.get(inOut.getApiName()).toString();
+
+                createOutput(res, inOut.getApiName(), valueStr, inOut.getType());
             }
             ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(res, HttpStatus.OK);
             session.getDeferredResult().setResult(jsonObjectResponseEntity);
             sessionManager.removeSession(s);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void createOutput(JSONObject res, String apiName, String valueStr, String type) {
+        switch (type) {
+            case "DATE":
+                if (valueStr == null || "".equals(valueStr)) {
+                    res.put(apiName, null);
+                } else {
+                    Date date = new Date(Long.parseLong(valueStr));
+                    res.put(apiName, date);
+                }
+                break;
+            case "NUMERIC":
+                if (valueStr == null || "".equals(valueStr)) {
+                    res.put(apiName, null);
+                } else {
+                    long longVal = Long.parseLong(valueStr.contains(".") ? valueStr.substring(0, valueStr.indexOf('.')) : valueStr);
+                    res.put(apiName, longVal);
+                }
+                break;
+            case "VARCHAR":
+                res.put(apiName, valueStr);
+                break;
+            case "CLOB":
+                res.put(apiName, valueStr);
+                break;
+            case "BLOB":
+                res.put(apiName, valueStr);
+                break;
         }
     }
 }

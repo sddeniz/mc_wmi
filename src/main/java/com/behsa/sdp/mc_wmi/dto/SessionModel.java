@@ -5,18 +5,24 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 public class SessionModel {
     private DeferredResult<ResponseEntity<?>> deferredResult;
-    private String metaData;
+    private boolean expectResponse;
 
-    public SessionModel(DeferredResult<ResponseEntity<?>> deferredResult, String metaData) {
+    public SessionModel(DeferredResult<ResponseEntity<?>> deferredResult) {
         this.deferredResult = deferredResult;
-        this.metaData = metaData;
     }
 
     public DeferredResult<ResponseEntity<?>> getDeferredResult() {
         return deferredResult;
     }
+    public void setDeferredResult(DeferredResult<ResponseEntity<?>> deferredResult) {
+        this.deferredResult = deferredResult;
+    }
 
-    public String getMetaData() {
-        return metaData;
+    public boolean isExpectResponse() {
+        return expectResponse;
+    }
+
+    public void setExpectResponse(boolean expectResponse) {
+        this.expectResponse = expectResponse;
     }
 }
