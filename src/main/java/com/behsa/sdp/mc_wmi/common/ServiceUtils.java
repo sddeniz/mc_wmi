@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.UUID;
 
+/**
+ * ساختن کد یکتا
+ */
 @Component
 public class ServiceUtils {
     private String serviceInstanceKey;

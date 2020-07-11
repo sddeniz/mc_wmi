@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sdpMsSdk.SdpHelper;
 
+/***
+ * config for spring
+ */
 @Configuration
 public class BeanConfig {
 
@@ -28,7 +31,7 @@ public class BeanConfig {
     @Bean
     public SdpHelper getSdpHelper(){
         try {
-            return new SdpHelper(rabbitMqHost, rabbitMqPort, rabbitMqUsername, rabbitMqPassword, "wmi",
+            return new SdpHelper(rabbitMqHost, rabbitMqPort, rabbitMqUsername, rabbitMqPassword, "restApi",
                     redisHost, redisPort, redisPassword, 0);
         } catch (CoreException e) {
             e.printStackTrace();

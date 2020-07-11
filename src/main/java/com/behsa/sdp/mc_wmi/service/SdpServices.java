@@ -24,8 +24,8 @@ public class SdpServices {
     @PostConstruct
     private void initialize() {
         try {
-            sdpHelper.startConsumeAsync("sdp_crm/api_response/"+serviceUtils.getServiceInstanceKey(), 1, true, triggerSyncResponse);
-            sdpHelper.startConsumeAsync("sdp_crm/api_continued_response/"+serviceUtils.getServiceInstanceKey(), 1, true, continueResponse);
+            sdpHelper.startConsumeAsync("sdp_api/api_response/"+serviceUtils.getServiceInstanceKey(), 1, true, triggerSyncResponse);//todo change to rest API
+            sdpHelper.startConsumeAsync("sdp_api/api_continued_response/"+serviceUtils.getServiceInstanceKey(), 1, true, continueResponse);//todo change to rest API
         } catch (IOException e) {
             e.printStackTrace();
         }

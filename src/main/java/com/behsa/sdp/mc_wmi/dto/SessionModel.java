@@ -3,6 +3,9 @@ package com.behsa.sdp.mc_wmi.dto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 
+/**
+ * ساخت دیفر ( منتظر پاسخ از سیستم میباشد )
+ */
 public class SessionModel {
     private DeferredResult<ResponseEntity<?>> deferredResult;
     private boolean expectResponse;
@@ -14,6 +17,7 @@ public class SessionModel {
     public DeferredResult<ResponseEntity<?>> getDeferredResult() {
         return deferredResult;
     }
+
     public void setDeferredResult(DeferredResult<ResponseEntity<?>> deferredResult) {
         this.deferredResult = deferredResult;
     }
