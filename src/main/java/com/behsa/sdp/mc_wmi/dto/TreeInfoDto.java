@@ -6,10 +6,12 @@ public class TreeInfoDto implements Serializable {
 
     private long treeId;
     private String inputs;
+    private String outputs;
 
-    public TreeInfoDto(long treeId, String inputs) {
+    public TreeInfoDto(long treeId, String inputs, String outputs) {
         this.treeId = treeId;
         this.inputs = inputs;
+        this.outputs = outputs;
     }
 
     public long getTreeId() {
@@ -28,11 +30,20 @@ public class TreeInfoDto implements Serializable {
         this.inputs = inputs;
     }
 
+    public String getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(String outputs) {
+        this.outputs = outputs;
+    }
+
     @Override
     public String toString() {
         return "TreeInfoDto{" +
                 "treeId=" + treeId +
-                ", inputs=" + inputs +
+                ", inputs='" + inputs + '\'' +
+                ", outputs='" + outputs + '\'' +
                 '}';
     }
 }

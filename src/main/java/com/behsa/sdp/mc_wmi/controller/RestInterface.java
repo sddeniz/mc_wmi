@@ -1,10 +1,12 @@
 package com.behsa.sdp.mc_wmi.controller;
 
+import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
 import com.behsa.sdp.mc_wmi.common.ServiceUtils;
 import com.behsa.sdp.mc_wmi.common.SessionManager;
 import com.behsa.sdp.mc_wmi.common.ValidationInputService;
 import com.behsa.sdp.mc_wmi.dto.*;
 import com.behsa.sdp.mc_wmi.repository.RestApiRepository;
+import com.behsa.sdp.mc_wmi.utils.ServiceTypeEnums;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -29,7 +31,7 @@ public class RestInterface {
     private static final String MICROSERVICE_NAME = "ms_rest";
     private static final String TRIGGER_SYNC_SERVICE = "ms_rest";
 
-    private final static Logger logger = LoggerFactory.getLogger(RestApiRepository.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RestApiRepository.class);
 
 
     @Autowired
@@ -47,6 +49,9 @@ public class RestInterface {
     @Autowired
     ValidationInputService validationInputService;
 
+    @Autowired
+    private CacheRestAPI cacheTreeGw;
+
 
     @PostMapping(value = "/api/call/{serviceName}")
     public @ResponseBody
@@ -55,28 +60,47 @@ public class RestInterface {
                                                   @RequestBody JSONObject payload,
                                                   HttpServletRequest request) throws Exception {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
-        String host = request.getServerName();
-        TreeGwDto treeGwDto = configurationTreeGw(host, serviceName, version, 1);//type make enum ,
+        String host = request.getServerName().trim();// "localhost".trim();//todo back this  request.getServerName() .trim;
+
+        TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);
+
+
+        TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.rest.getCode(), version, host);//type make enum ,
         TreeInfoDto infoDto = restApiRepository.getTreeId(treeGwDto);
+
+        if (infoDtoCache == null) {
+            cacheTreeGw.setHashMap(serviceName, infoDto);
+        }
+
         boolean haveTree = validationInputService.isHaveTree(infoDto);
+        String trackCode = String.valueOf(UUID.randomUUID());
         if (!haveTree) {
-            //todo return error to user
+            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
+            LOGGER.debug("Service is wrong , payload:{}  , infoDto:{}  , trackCode:{}"
+                    , payload, infoDto.toString(), trackCode);
+            return output;
+
         }
         JSONObject mapPayLoad = mapPayLoad(infoDto, payload);
         if (mapPayLoad.isEmpty()) {
-            //todo return error to user
+            errorResponse("Input service Fields are wrong", trackCode, output, HttpStatus.BAD_REQUEST);
+            LOGGER.debug("can not mach input and tree Info , payload:{}  , infoDto:{}  , trackCode:{}"
+                    , payload, infoDto.toString(), trackCode);
+            return output;
         }
 
         payloadConfig(mapPayLoad, infoDto.getTreeId(), serviceName,
                 version, host, request.getServerPort(), payload);
 
-        String trackCode = String.valueOf(UUID.randomUUID());
+
         sessionManager.setSession(trackCode, new SessionModel(output));
+        System.out.println("track code :" + trackCode);
+        System.out.println("instanceKey :" + serviceUtils.getServiceInstanceKey());
         sdpHelper.sendStartProcess("sdp_api", "api_request",
                 serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
-        logger.debug(mapPayLoad.toJSONString());
-        logger.info("request sent, trackCode: " + trackCode);
+        LOGGER.debug(mapPayLoad.toJSONString());
+        LOGGER.info("request sent, trackCode: " + trackCode);
         return output;
     }
 
@@ -144,11 +168,25 @@ public class RestInterface {
      * @param type   type of service like rest /soap /ussd
      * @return treegw dto
      */
-    private TreeGwDto configurationTreeGw(String domain, String title,
-                                          String ver, int type) {
+    private TreeGwDto configurationTreeGw(String title, int type,
+                                          String ver, String domain) {
         return new TreeGwDto(title, type, null, ver, domain);
     }
 
+
+    private void errorResponse(String textError, String trackCode, DeferredResult<ResponseEntity<?>> output, HttpStatus httpStatus) {
+        JSONObject jsonObject = new JSONObject();
+        sessionManager.setSession(trackCode, new SessionModel(output));
+        SessionModel session = sessionManager.getSession(trackCode);
+        jsonObject.put("DSDP_Code", trackCode);
+        ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(jsonObject, httpStatus);
+        jsonObject.put("Message", textError);
+        jsonObject.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
+        jsonObject.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
+        session.getDeferredResult().setResult(jsonObjectResponseEntity);
+        session.setExpectResponse(true);
+        sessionManager.setSession(trackCode, session);
+    }
 
     //--------------------------------
     @PostMapping(value = "/api/response/{trackCode}")

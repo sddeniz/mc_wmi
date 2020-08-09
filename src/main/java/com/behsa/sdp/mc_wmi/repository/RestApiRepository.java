@@ -67,7 +67,7 @@ public class RestApiRepository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"));
+                return new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"), resultSet.getString("OUTPUTS"));
             }
 
             return null;

@@ -65,6 +65,9 @@ public class AppConfig {
     @Value("${sdp.log.debugMode}")
     private Boolean debugMode;
 
+    @Value("${sdp.end.prefetch}")
+    public String sdp_api_prefetch;
+
 
     @Bean
     public HikariDataSource createHikariConnection() {
