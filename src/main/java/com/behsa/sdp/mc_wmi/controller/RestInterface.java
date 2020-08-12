@@ -1,9 +1,7 @@
 package com.behsa.sdp.mc_wmi.controller;
 
-import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
-import com.behsa.sdp.mc_wmi.common.ServiceUtils;
-import com.behsa.sdp.mc_wmi.common.SessionManager;
-import com.behsa.sdp.mc_wmi.common.ValidationInputService;
+import com.behsa.sdp.mc_wmi.common.*;
+import com.behsa.sdp.mc_wmi.config.BeanConfig;
 import com.behsa.sdp.mc_wmi.dto.*;
 import com.behsa.sdp.mc_wmi.repository.RestApiRepository;
 import com.behsa.sdp.mc_wmi.utils.ServiceTypeEnums;
@@ -52,6 +50,12 @@ public class RestInterface {
     @Autowired
     private CacheRestAPI cacheTreeGw;
 
+    @Autowired
+    private BeanConfig beanConfig;
+
+    @Autowired
+    private CheckBilling checkBilling;
+
 
     @PostMapping(value = "/api/call/{serviceName}")
     public @ResponseBody
@@ -59,8 +63,20 @@ public class RestInterface {
                                                   @RequestParam("ver") String version,
                                                   @RequestBody JSONObject payload,
                                                   HttpServletRequest request) throws Exception {
+
+
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
         String host = request.getServerName().trim();// "localhost".trim();//todo back this  request.getServerName() .trim;
+        String trackCode = String.valueOf(UUID.randomUUID());
+
+        if (!validationBilling(serviceName)) {
+            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
+            LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
+                    , payload, serviceName, trackCode);
+            return output;
+        }
+
+        //todo validationInputService();
 
         TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);
 
@@ -73,7 +89,7 @@ public class RestInterface {
         }
 
         boolean haveTree = validationInputService.isHaveTree(infoDto);
-        String trackCode = String.valueOf(UUID.randomUUID());
+
         if (!haveTree) {
             errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
             LOGGER.debug("Service is wrong , payload:{}  , infoDto:{}  , trackCode:{}"
@@ -93,7 +109,7 @@ public class RestInterface {
                 version, host, request.getServerPort(), payload);
 
 
-        sessionManager.setSession(trackCode, new SessionModel(output));
+        sessionManager.setSession(trackCode, new SessionDto(output));
         System.out.println("track code :" + trackCode);
         System.out.println("instanceKey :" + serviceUtils.getServiceInstanceKey());
         sdpHelper.sendStartProcess("sdp_api", "api_request",
@@ -176,8 +192,8 @@ public class RestInterface {
 
     private void errorResponse(String textError, String trackCode, DeferredResult<ResponseEntity<?>> output, HttpStatus httpStatus) {
         JSONObject jsonObject = new JSONObject();
-        sessionManager.setSession(trackCode, new SessionModel(output));
-        SessionModel session = sessionManager.getSession(trackCode);
+        sessionManager.setSession(trackCode, new SessionDto(output));
+        SessionDto session = sessionManager.getSession(trackCode);
         jsonObject.put("DSDP_Code", trackCode);
         ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(jsonObject, httpStatus);
         jsonObject.put("Message", textError);
@@ -186,6 +202,18 @@ public class RestInterface {
         session.getDeferredResult().setResult(jsonObjectResponseEntity);
         session.setExpectResponse(true);
         sessionManager.setSession(trackCode, session);
+    }
+
+
+
+    private boolean validationBilling(String serviceName) {
+        checkBilling.setGwTitle(serviceName);
+        String billPeriodTime = beanConfig.billPeriodTime;
+        if (billPeriodTime != null && !billPeriodTime.equals("-1")) {
+            String result = checkBilling.billingCheck(Long.valueOf(billPeriodTime), checkBilling);
+            return (result.equals("0"));
+        }
+        return false;
     }
 
     //--------------------------------
@@ -197,7 +225,7 @@ public class RestInterface {
                                                    HttpServletRequest request) throws Exception {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
         System.out.println("response");
-        SessionModel session = sessionManager.getSession(trackCode);
+        SessionDto session = sessionManager.getSession(trackCode);
         session.setDeferredResult(output);
         sdpHelper.sendResponse(payload, trackCode);
         System.out.println("service response sent, trackCode: " + trackCode);
@@ -206,9 +234,9 @@ public class RestInterface {
 
     @PostMapping(value = "/trigger/{channelName}/{triggerName}")
     public @ResponseBody
-    ResponseEntity<TriggerAsyncResponseModel> triggerAsync(@PathVariable("channelName") String
+    ResponseEntity<TriggerAsyncResponseDto> triggerAsync(@PathVariable("channelName") String
                                                                    channelName, @PathVariable("triggerName") String triggerName,
-                                                           @RequestBody JSONObject payload, HttpServletRequest request) throws Exception {
+                                                         @RequestBody JSONObject payload, HttpServletRequest request) throws Exception {
         String trackCode = "";
         try {
             trackCode = sdpHelper.sendStartProcess(channelName, triggerName, null, payload, null);
@@ -216,13 +244,13 @@ public class RestInterface {
                 throw new Exception("خطا در ثبت درخواست");
             }
             System.out.println("request sent, trackCode: " + trackCode);
-            return new ResponseEntity<>(new TriggerAsyncResponseModel("ORDINARY", trackCode, null),
+            return new ResponseEntity<>(new TriggerAsyncResponseDto("ORDINARY", trackCode, null),
                     HttpStatus.OK);
         } catch (Exception e) {
             JSONObject jo = new JSONObject();
             jo.put("errorCode", 1);
             jo.put("errorMessage", "خطا در ثبت درخواست");
-            return new ResponseEntity<>(new TriggerAsyncResponseModel("ERROR", trackCode, jo),
+            return new ResponseEntity<>(new TriggerAsyncResponseDto("ERROR", trackCode, jo),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -2,12 +2,12 @@ package com.behsa.sdp.mc_wmi.dto;
 
 import org.json.simple.JSONObject;
 
-public class TriggerAsyncResponseModel {
+public class TriggerAsyncResponseDto {
     private String type;
     private String trackingCode;
     private JSONObject payload;
 
-    public TriggerAsyncResponseModel(String type, String trackingCode, JSONObject payload) {
+    public TriggerAsyncResponseDto(String type, String trackingCode, JSONObject payload) {
         this.type = type;
         this.trackingCode = trackingCode;
         this.payload = payload;

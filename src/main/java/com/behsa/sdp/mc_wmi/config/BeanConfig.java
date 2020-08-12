@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sdpMsSdk.SdpHelper;
 
+import java.util.Timer;
+
 /***
  * config for spring
  */
@@ -28,8 +30,12 @@ public class BeanConfig {
     @Value("${sdp.redis.password}")
     private String redisPassword;
 
+    @Value("${sdp.billPeriodTime}")
+    public String billPeriodTime;
+
+
     @Bean
-    public SdpHelper getSdpHelper(){
+    public SdpHelper getSdpHelper() {
         try {
             return new SdpHelper(rabbitMqHost, rabbitMqPort, rabbitMqUsername, rabbitMqPassword, "restApi",
                     redisHost, redisPort, redisPassword, 0);
@@ -37,6 +43,11 @@ public class BeanConfig {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Bean
+    public Timer timer() {
+        return new Timer();
     }
 
 }

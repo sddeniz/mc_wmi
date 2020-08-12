@@ -1,6 +1,7 @@
 package com.behsa.sdp.mc_wmi.repository;
 
 import com.behsa.sdp.mc_wmi.common.ConnectionProvider;
+import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.dto.TreeGwDto;
 import com.behsa.sdp.mc_wmi.dto.TreeInfoDto;
 import com.behsa.sdp.mc_wmi.utils.AppConfig;
@@ -52,13 +53,19 @@ public class RestApiRepository {
      */
     public TreeInfoDto getTreeId(TreeGwDto treeGwDto) {
 
+        String command = "select * from VW_TreeGw tr  where tr.type=? and tr.verApi=?  and  tr.title=? and tr.domain=? and tr.state=1";
+
         try (Connection connection = connectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("select * from VW_TreeGw tr " +
-                     "where tr.type=? " +
-                     "and tr.verApi=? " +
-                     "and  tr.title=? " +
-                     "and tr.domain=? " +
-                     "and tr.state=1")) {
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     command
+//                     "select * from VW_TreeGw tr " +
+//                     "where tr.type=? " +
+//                     "and tr.verApi=? " +
+//                     "and  tr.title=? " +
+//                     "and tr.domain=? " +
+//                     "and tr.state=1")
+
+             )) {
 
             preparedStatement.setInt(1, treeGwDto.getType());
             preparedStatement.setString(2, treeGwDto.getVersion());
@@ -80,7 +87,40 @@ public class RestApiRepository {
 
         return null;
     }
-    
-    
+
+
+    public List<PermissionDto> getPermission(String userName) {
+        try (Connection connection = connectionProvider.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "select * from vw_userPermission pr " +
+                             "where pr.username=? ")) {
+
+            preparedStatement.setString(1, userName.trim());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<PermissionDto> permissionDtos = new ArrayList<>();
+            if (resultSet.next()) {
+                permissionDtos.add(new PermissionDto
+                        (
+                                resultSet.getString("username"),
+                                resultSet.getString("serviceTitle"),
+                                resultSet.getString("tps"),
+                                resultSet.getString("tpd"),
+                                resultSet.getString("startdate"),
+                                resultSet.getString("enddate"),
+                                resultSet.getString("maxbind"),
+                                resultSet.getString("servicetimeout"),
+                                resultSet.getLong("userId"),
+                                resultSet.getLong("serviceid")
+                        ));
+            }
+            return permissionDtos;
+        } catch (SQLException throwables) {
+            logger.error("SQL Error For Find Tree ", throwables);
+        } catch (Exception e) {
+            logger.error("Exception ", e);
+        }
+        return null;//todo clean this
+    }
+
 
 }

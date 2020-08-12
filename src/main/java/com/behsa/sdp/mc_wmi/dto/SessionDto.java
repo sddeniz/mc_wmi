@@ -6,11 +6,11 @@ import org.springframework.web.context.request.async.DeferredResult;
 /**
  * ساخت دیفر ( منتظر پاسخ از سیستم میباشد )
  */
-public class SessionModel {
+public class SessionDto {
     private DeferredResult<ResponseEntity<?>> deferredResult;
     private boolean expectResponse;
 
-    public SessionModel(DeferredResult<ResponseEntity<?>> deferredResult) {
+    public SessionDto(DeferredResult<ResponseEntity<?>> deferredResult) {
         this.deferredResult = deferredResult;
     }
 

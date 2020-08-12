@@ -2,7 +2,7 @@ package com.behsa.sdp.mc_wmi.service;
 
 import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
 import com.behsa.sdp.mc_wmi.common.SessionManager;
-import com.behsa.sdp.mc_wmi.dto.SessionModel;
+import com.behsa.sdp.mc_wmi.dto.SessionDto;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
     public void OnReceive(JSONObject jsonObject, String s, JSONObject jsonObject1, String s1, long l, String s2) {
         try {
             System.out.println(jsonObject);
-            SessionModel session = sessionManager.getSession(s);
+            SessionDto session = sessionManager.getSession(s);
             //todo add wapper 
             jsonObject.remove("sdp_userId");
             jsonObject.put("DSDP_Code", s);

@@ -1,7 +1,7 @@
 package com.behsa.sdp.mc_wmi.service;
 
 import com.behsa.sdp.mc_wmi.common.SessionManager;
-import com.behsa.sdp.mc_wmi.dto.SessionModel;
+import com.behsa.sdp.mc_wmi.dto.SessionDto;
 import com.google.gson.Gson;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class ContinueResponse implements ISdpHandlerAsync {
         try {
             System.out.println("resssssssssssponse ");
             System.out.println(jsonObject);
-            SessionModel session = sessionManager.getSession(s);
+            SessionDto session = sessionManager.getSession(s);
             jsonObject.remove("sdp_userId");
             jsonObject.put("DSDP_Code", s);
             ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(jsonObject, HttpStatus.OK);
