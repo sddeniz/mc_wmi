@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
 @RestController
-public class RestInterface {
+public class RestApiController {
 
     private static final String MICROSERVICE_NAME = "ms_rest";
     private static final String TRIGGER_SYNC_SERVICE = "ms_rest";

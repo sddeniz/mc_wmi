@@ -5,10 +5,9 @@ import com.behsa.sdp.mc_wmi.config.JwtTokenUtil;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.service.JwtUserDetailsService;
 import com.google.gson.Gson;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class RateFilter extends OncePerRequestFilter {
+public class RateFilter {//extends OncePerRequestFilter {
 
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
@@ -33,39 +32,59 @@ public class RateFilter extends OncePerRequestFilter {
     @Autowired
     private Gson gson;
 
-    @Override
-    @Order(3)
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-        final Authentication requestTokenHeader = SecurityContextHolder.getContext().getAuthentication();
-        final String requestTokenPermissions = request.getHeader("Authorization");
 
+   // @Override
+    @Order(3)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        final String requestTokenPermissions = request.getHeader("Authorization");
+        if (request.getRequestURI() .equals("/authenticate")) {
+            chain.doFilter(request, response);
+        }
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse myResponse = (HttpServletResponse) response;
         String pathVariables = request.getRequestURI();
         String serviceName = pathVariables.replace("/api/call/", "");
 
-
-        if (requestTokenHeader != null) {
-            try {
-                String permissions = jwtTokenUtil.getHeadersFromToken(requestTokenPermissions);
-                try {
-                    PermissionDto[] permissionDtos = gson.fromJson(permissions, PermissionDto[].class);
-//                    Arrays.stream(permissionDtos).filter(s->s.getServiceTitle().equals())
-                    for (PermissionDto permissionDto : permissionDtos) {
-                        if (permissionDto.getServiceTitle().equals(serviceName))
-                            chain.doFilter(request, response);
-
-                    }
-                } catch (Exception e) {
-                    logger.error("token permission have problems");
+        String permissions = jwtTokenUtil.getHeadersFromToken(requestTokenPermissions);
+        PermissionDto[] permissionDtos = gson.fromJson(permissions, PermissionDto[].class);
+        for (PermissionDto permissionDto : permissionDtos) {
+            if (permissionDto.getServiceTitle().equals(serviceName)) {
+                if (checkLimitation(permissionDto))
+                    chain.doFilter(request, response);
+                else {
+                    responseErrorToUser(httpRequest, response, chain);
                 }
-            } catch (IllegalArgumentException e) {
-                logger.error("Unable to get JWT Token");
-            } catch (ExpiredJwtException e) {
-                logger.error("JWT Token has expired");
             }
-        } else {
-            logger.warn("JWT Token does not Authorization Header");
         }
 
+        responseErrorToUser(httpRequest, myResponse, chain);
+
+
+    }
+
+
+
+    private void responseErrorToUser(HttpServletRequest httpRequest, HttpServletResponse rateResponse, FilterChain chain) throws IOException, ServletException {
+        rateResponse.addHeader("PROFE", "REDIRECTED");
+        rateResponse.sendRedirect("redirected");
+        rateResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        rateResponse.getOutputStream().flush();
+        chain.doFilter(httpRequest, rateResponse);
+    }
+
+
+    private boolean checkLimitation(PermissionDto permissionDto) {
+
+        LimitManager limitManager = new LimitManager(
+                Integer.parseInt(permissionDto.getTpd()),
+                Integer.parseInt(permissionDto.getMaxBind()),
+                Integer.parseInt(permissionDto.getTps()));
+
+        return (limitManager.checkBindLimit() &&
+                limitManager.checkDailyLimitTransaction() &&
+                limitManager.checkTransactionPerSecond());
+
+
+        //  new Timer().schedule(new UpdateDayTask(limitManager), 100, 60000);
     }
 }

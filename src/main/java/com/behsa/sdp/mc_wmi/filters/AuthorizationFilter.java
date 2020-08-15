@@ -8,25 +8,17 @@ import com.google.gson.Gson;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
 
 @Component
-public class AuthorizationFilter extends OncePerRequestFilter {
+public class AuthorizationFilter {//extends OncePerRequestFilter {
 
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
@@ -39,40 +31,41 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     @Autowired
     private Gson gson;
 
-    @Override
+    //@Override
     @Order(2)
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-        final Authentication requestTokenHeader = SecurityContextHolder.getContext().getAuthentication();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         final String requestTokenPermissions = request.getHeader("Authorization");
+        if (request.getRequestURI().equals("/authenticate")) {
+            chain.doFilter(request, response);
+        }
 
-        String pathVariables =request.getRequestURI();
+        String pathVariables = request.getRequestURI();
         String serviceName = pathVariables.replace("/api/call/", "");
 
-
-
-        if (requestTokenHeader != null) {
+        if (!serviceName.isEmpty()) {
             try {
                 String permissions = jwtTokenUtil.getHeadersFromToken(requestTokenPermissions);
                 try {
                     PermissionDto[] permissionDtos = gson.fromJson(permissions, PermissionDto[].class);
-//                    Arrays.stream(permissionDtos).filter(s->s.getServiceTitle().equals())
-                    for (PermissionDto permissionDto : permissionDtos) {
-                      if (permissionDto.getServiceTitle().equals(serviceName))
-                          chain.doFilter(request, response);
-
+                     for (PermissionDto permissionDto : permissionDtos) {
+                        if (permissionDto.getServiceTitle().equals(serviceName))
+                            chain.doFilter(request, response);
                     }
+
                 } catch (Exception e) {
-                    logger.error("token permission have problems");
+                  //  logger.error("token permission have problems");
                 }
             } catch (IllegalArgumentException e) {
-                logger.error("Unable to get JWT Token");
+                //logger.error("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
-                logger.error("JWT Token has expired");
+             //   logger.error("JWT Token has expired");
             }
         } else {
-            logger.warn("JWT Token does not Authorization Header");
+           // logger.warn("service Name does not Authorization");
         }
 
+
     }
+
+
 }

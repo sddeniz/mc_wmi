@@ -38,22 +38,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+            throws IOException, ServletException {
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
 
         if (requestTokenHeader != null) {
             try {
                 username = jwtTokenUtil.getUsernameFromToken(requestTokenHeader);
-                String permissions = jwtTokenUtil.getHeadersFromToken(requestTokenHeader);
-                try {
-                    PermissionDto[] permissionDtos = gson.fromJson(permissions, PermissionDto[].class);
-                    for (PermissionDto permissionDto : permissionDtos) {
-                        System.out.println(permissionDto.getMaxBind());
-                    }
-                } catch (Exception e) {
-                    logger.error("token permission have problems");
-                }
             } catch (IllegalArgumentException e) {
                 logger.error("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
@@ -69,18 +60,44 @@ public class AuthenticationFilter extends OncePerRequestFilter {
              *   if token is valid configure Spring Security to manually set authentication
              */
             if (jwtTokenUtil.validateToken(requestTokenHeader, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                /**
-                 * After setting the Authentication in the context, we specify
-                 *              that the current user is authenticated. So it passes the
-                 *             Spring Security Configurations successfully.
-                 */
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
+                if (methodAut(request,requestTokenHeader)) {
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    usernamePasswordAuthenticationToken
+                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    /**
+                     * After setting the Authentication in the context, we specify
+                     *              that the current user is authenticated. So it passes the
+                     *             Spring Security Configurations successfully.
+                     */
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                }
+
             }
         }
+
+        //  response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         chain.doFilter(request, response);
     }
+
+
+    private boolean methodAut(HttpServletRequest request, String requestTokenHeader) {
+
+        String pathVariables = request.getRequestURI();
+        String serviceName = pathVariables.replace("/api/call/", "");
+
+        if (!serviceName.isEmpty()) {
+
+            String permissions = jwtTokenUtil.getHeadersFromToken(requestTokenHeader);
+            PermissionDto[] permissionDtos = gson.fromJson(permissions, PermissionDto[].class);
+            for (PermissionDto permissionDto : permissionDtos) {
+                if (permissionDto.getServiceTitle().equals(serviceName))
+                    return true;
+
+            }
+        }
+        return false;
+    }
+
 }
