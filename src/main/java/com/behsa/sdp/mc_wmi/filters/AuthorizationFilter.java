@@ -1,6 +1,8 @@
 package com.behsa.sdp.mc_wmi.filters;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
+import com.behsa.sdp.mc_wmi.dto.Authority;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,14 +17,14 @@ import java.io.IOException;
 
 @Component
 public class AuthorizationFilter extends OncePerRequestFilter {
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return request.getRequestURI().equals("/authenticate") || authentication == null;
+    }
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        if (request.getRequestURI().equals("/authenticate") || authentication == null) {
-            chain.doFilter(request, response);
-            return;
-        }
-
+        DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
         String pathVariables = request.getRequestURI();
         String serviceName = pathVariables.replace("/api/call/", "");
 
@@ -36,14 +38,14 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
         for (GrantedAuthority authority : details.getAuthorities()) {
             if (authority.getAuthority().equals(serviceName)) {
+                authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
+                authentication.setAuthorized(true);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
                 chain.doFilter(request, response);
                 return;
             }
         }
-        SecurityContextHolder.getContext().setAuthentication(null);//todo moj
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
         chain.doFilter(request, response);
     }
-
 
 }

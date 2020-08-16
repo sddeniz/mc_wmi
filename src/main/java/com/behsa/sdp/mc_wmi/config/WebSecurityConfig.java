@@ -3,7 +3,6 @@ package com.behsa.sdp.mc_wmi.config;
 
 import com.behsa.sdp.mc_wmi.filters.AuthenticationFilter;
 import com.behsa.sdp.mc_wmi.filters.AuthorizationFilter;
-import com.behsa.sdp.mc_wmi.filters.RateLimitFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthorizationFilter authorizationFilter;
     @Autowired
-    private RateLimitFilter rateLimitFilter;
+    private DsdpAuthenticationProvider authProvider;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -54,12 +53,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(authProvider);
+    }
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 // We don't need CSRF for this example
         httpSecurity.csrf().disable()
 // dont authenticate this particular request
-                .authorizeRequests().antMatchers("/authenticate").permitAll().
+                .authorizeRequests().
+                antMatchers("/api/call/**").hasAuthority("SERVICE_ACCESS").
+                antMatchers("/authenticate").permitAll().
+
 // all other requests need to be authenticated
         anyRequest().authenticated().and().
 // make sure we use stateless session; session won't be used to
@@ -71,7 +79,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 // Add a filter to validate the tokens with every request
         httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
-        httpSecurity.addFilterAfter(rateLimitFilter, AuthorizationFilter.class);
     }
 
 }

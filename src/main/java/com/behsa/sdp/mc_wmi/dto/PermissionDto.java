@@ -1,11 +1,6 @@
 package com.behsa.sdp.mc_wmi.dto;
 
-import org.springframework.security.core.GrantedAuthority;
-
-import java.io.Serializable;
-
-
-public class PermissionDto implements GrantedAuthority, Serializable {
+public class PermissionDto extends Authority {
 
     private Long id;
     private String userName;
@@ -20,6 +15,7 @@ public class PermissionDto implements GrantedAuthority, Serializable {
     private Long serviceId;
 
     public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd, String startDatePermission, String endDatePermission, String maxBind, String serviceTimeOut, Long userId, Long serviceId) {
+        super(serviceTitle);
         this.id = id;
         this.userName = userName;
         this.serviceTitle = serviceTitle;
@@ -135,10 +131,5 @@ public class PermissionDto implements GrantedAuthority, Serializable {
                 ", userId='" + userId + '\'' +
                 ", serviceId='" + serviceId + '\'' +
                 '}';
-    }
-
-    @Override
-    public String getAuthority() {
-        return serviceTitle;
     }
 }

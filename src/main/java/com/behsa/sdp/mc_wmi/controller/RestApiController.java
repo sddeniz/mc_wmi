@@ -57,7 +57,7 @@ public class RestApiController {
     private CheckBilling checkBilling;
 
 
-    @PostMapping(value = "/api/call/{serviceName}")
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, value = "/api/call/{serviceName}")
     public @ResponseBody
     DeferredResult<ResponseEntity<?>> triggerSync(@PathVariable("serviceName") String serviceName,
                                                   @RequestParam("ver") String version,
@@ -69,12 +69,12 @@ public class RestApiController {
         String host = request.getServerName().trim();// "localhost".trim();//todo back this  request.getServerName() .trim;
         String trackCode = String.valueOf(UUID.randomUUID());
 
-//        if (!validationBilling(serviceName)) {
-//            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
-//            LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
-//                    , payload, serviceName, trackCode);
-//            return output;
-//        }
+        if (validationBilling(serviceName)) {
+            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
+            LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
+                    , payload, serviceName, trackCode);
+            return output;
+        }
 
         //todo validationInputService();
 
@@ -206,13 +206,7 @@ public class RestApiController {
 
 
     private boolean validationBilling(String serviceName) {
-        checkBilling.setGwTitle(serviceName);
-        String billPeriodTime = beanConfig.billPeriodTime;
-        if (billPeriodTime != null && !billPeriodTime.equals("-1")) {
-            String result = checkBilling.billingCheck(Long.valueOf(billPeriodTime), checkBilling);
-            return (result.equals("0"));
-        }
-        return false;
+        return checkBilling.billingCheck(serviceName);
     }
 
     //--------------------------------

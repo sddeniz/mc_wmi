@@ -1,15 +1,11 @@
 package com.behsa.sdp.mc_wmi.filters;
 
-import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
+import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.config.JwtTokenUtil;
-import com.behsa.sdp.mc_wmi.dto.PermissionDto;
-import com.behsa.sdp.mc_wmi.service.CoreRedis;
 import com.behsa.sdp.mc_wmi.service.JwtUserDetailsService;
-import com.google.gson.Gson;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -57,9 +53,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
              *   if token is valid configure Spring Security to manually set authentication
              */
             if (jwtTokenUtil.validateToken(requestTokenHeader, userDetails)) {
-
-//                if (methodAut(request, requestTokenHeader) && methodRate(request, response, requestTokenHeader)) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                DsdpAuthentication authentication = new DsdpAuthentication(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 /**
                  * After setting the Authentication in the context, we specify
@@ -67,8 +61,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                  *             Spring Security Configurations successfully.
                  */
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-//                }
-//
             }
         }
         chain.doFilter(request, response);

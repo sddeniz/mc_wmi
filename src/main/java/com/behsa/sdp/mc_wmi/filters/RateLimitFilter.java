@@ -1,17 +1,15 @@
 package com.behsa.sdp.mc_wmi.filters;
 
+import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -23,20 +21,19 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Map<String, Bucket> bucketMap = new HashMap<>();
 
-    // @Override
-    @Order(3)
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        if (request.getRequestURI().equals("/authenticate") || authentication == null) {
-            chain.doFilter(request, response);
-            return;
-        }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        return request.getRequestURI().equals("/authenticate") || authentication == null || !authentication.isAuthorized();
+    }
 
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
         String pathVariables = request.getRequestURI();
         String serviceName = pathVariables.replace("/api/call/", "");
 
@@ -66,6 +63,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
             bucketMap.put(rateKey, bucket);
         }
         if (!bucketMap.get(rateKey).tryConsume(1)) {
+//            authentication.removeAuthorities(new Authority("SERVICE_ACCESS"));
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
         }
         chain.doFilter(request, response);
