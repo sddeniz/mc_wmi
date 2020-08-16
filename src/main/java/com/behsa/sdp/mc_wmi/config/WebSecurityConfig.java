@@ -2,6 +2,8 @@ package com.behsa.sdp.mc_wmi.config;
 
 
 import com.behsa.sdp.mc_wmi.filters.AuthenticationFilter;
+import com.behsa.sdp.mc_wmi.filters.AuthorizationFilter;
+import com.behsa.sdp.mc_wmi.filters.RateLimitFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +25,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private  JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     @Autowired
     private UserDetailsService jwtUserDetailsService;
     @Autowired
     private AuthenticationFilter authenticationFilter;
+    @Autowired
+    private AuthorizationFilter authorizationFilter;
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -63,7 +69,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 // Add a filter to validate the tokens with every request
-        httpSecurity.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
+        httpSecurity.addFilterAfter(rateLimitFilter, AuthorizationFilter.class);
     }
 
 }

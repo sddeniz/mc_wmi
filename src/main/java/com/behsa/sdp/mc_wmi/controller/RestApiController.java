@@ -69,12 +69,12 @@ public class RestApiController {
         String host = request.getServerName().trim();// "localhost".trim();//todo back this  request.getServerName() .trim;
         String trackCode = String.valueOf(UUID.randomUUID());
 
-        if (!validationBilling(serviceName)) {
-            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
-            LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
-                    , payload, serviceName, trackCode);
-            return output;
-        }
+//        if (!validationBilling(serviceName)) {
+//            errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
+//            LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
+//                    , payload, serviceName, trackCode);
+//            return output;
+//        }
 
         //todo validationInputService();
 
@@ -92,8 +92,7 @@ public class RestApiController {
 
         if (!haveTree) {
             errorResponse("Service is wrong", trackCode, output, HttpStatus.NOT_FOUND);
-            LOGGER.debug("Service is wrong , payload:{}  , infoDto:{}  , trackCode:{}"
-                    , payload, infoDto.toString(), trackCode);
+            LOGGER.debug("Service is wrong , payload:{}  , infoDto:{}  , trackCode:{}", payload, infoDto.toString(), trackCode);
             return output;
 
         }

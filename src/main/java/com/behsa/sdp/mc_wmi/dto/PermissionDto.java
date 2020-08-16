@@ -1,14 +1,17 @@
 package com.behsa.sdp.mc_wmi.dto;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import java.io.Serializable;
 
 
-public class PermissionDto implements Serializable {
+public class PermissionDto implements GrantedAuthority, Serializable {
 
+    private Long id;
     private String userName;
     private String serviceTitle;
-    private String tps;
-    private String tpd;
+    private Long tps;
+    private Long tpd;
     private String startDatePermission;
     private String endDatePermission;
     private String maxBind;
@@ -16,7 +19,8 @@ public class PermissionDto implements Serializable {
     private Long userId;
     private Long serviceId;
 
-    public PermissionDto(String userName, String serviceTitle, String tps, String tpd, String startDatePermission, String endDatePermission, String maxBind, String serviceTimeOut, Long userId, Long serviceId) {
+    public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd, String startDatePermission, String endDatePermission, String maxBind, String serviceTimeOut, Long userId, Long serviceId) {
+        this.id = id;
         this.userName = userName;
         this.serviceTitle = serviceTitle;
         this.tps = tps;
@@ -27,6 +31,14 @@ public class PermissionDto implements Serializable {
         this.serviceTimeOut = serviceTimeOut;
         this.userId = userId;
         this.serviceId = serviceId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUserName() {
@@ -45,19 +57,19 @@ public class PermissionDto implements Serializable {
         this.serviceTitle = serviceTitle;
     }
 
-    public String getTps() {
+    public Long getTps() {
         return tps;
     }
 
-    public void setTps(String tps) {
+    public void setTps(Long tps) {
         this.tps = tps;
     }
 
-    public String getTpd() {
+    public Long getTpd() {
         return tpd;
     }
 
-    public void setTpd(String tpd) {
+    public void setTpd(Long tpd) {
         this.tpd = tpd;
     }
 
@@ -123,5 +135,10 @@ public class PermissionDto implements Serializable {
                 ", userId='" + userId + '\'' +
                 ", serviceId='" + serviceId + '\'' +
                 '}';
+    }
+
+    @Override
+    public String getAuthority() {
+        return serviceTitle;
     }
 }

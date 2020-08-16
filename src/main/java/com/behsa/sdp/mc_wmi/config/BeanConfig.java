@@ -4,6 +4,9 @@ import common.CoreException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Protocol;
 import sdpMsSdk.SdpHelper;
 
 import java.util.Timer;
@@ -34,6 +37,8 @@ public class BeanConfig {
     public String billPeriodTime;
 
 
+
+
     @Bean
     public SdpHelper getSdpHelper() {
         try {
@@ -46,8 +51,19 @@ public class BeanConfig {
     }
 
     @Bean
-    public Timer timer() {
-        return new Timer();
+    public JedisPool initializeRedis() {
+        if (redisPassword.isEmpty()) {
+            return new JedisPool(new JedisPoolConfig(), redisHost, redisPort
+                    , Protocol.DEFAULT_TIMEOUT);
+        }
+        return new JedisPool(new JedisPoolConfig(), redisHost, redisPort
+                , Protocol.DEFAULT_TIMEOUT, redisPassword);
     }
+
+
+//    @Bean
+//    public Timer timer() {
+//        return new Timer();
+//    }
 
 }

@@ -14,7 +14,9 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class RestApiRepository {
@@ -89,7 +91,7 @@ public class RestApiRepository {
     }
 
 
-    public List<PermissionDto> getPermission(String userName) {
+    public Map<String, PermissionDto> getPermission(String userName) {
         try (Connection connection = connectionProvider.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
                      "select * from vw_userPermission pr " +
@@ -97,14 +99,15 @@ public class RestApiRepository {
 
             preparedStatement.setString(1, userName.trim());
             ResultSet resultSet = preparedStatement.executeQuery();
-            List<PermissionDto> permissionDtos = new ArrayList<>();
+            Map<String, PermissionDto> permissionMap = new HashMap<>();
             if (resultSet.next()) {
-                permissionDtos.add(new PermissionDto
+                permissionMap.put(resultSet.getString("serviceTitle"), new PermissionDto
                         (
+                                resultSet.getLong("id"),
                                 resultSet.getString("username"),
                                 resultSet.getString("serviceTitle"),
-                                resultSet.getString("tps"),
-                                resultSet.getString("tpd"),
+                                resultSet.getLong("tps"),
+                                resultSet.getLong("tpd"),
                                 resultSet.getString("startdate"),
                                 resultSet.getString("enddate"),
                                 resultSet.getString("maxbind"),
@@ -113,7 +116,7 @@ public class RestApiRepository {
                                 resultSet.getLong("serviceid")
                         ));
             }
-            return permissionDtos;
+            return permissionMap;
         } catch (SQLException throwables) {
             logger.error("SQL Error For Find Tree ", throwables);
         } catch (Exception e) {

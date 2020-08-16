@@ -1,7 +1,6 @@
 package com.behsa.sdp.mc_wmi.config;
 
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
-import com.google.gson.Gson;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -95,10 +94,8 @@ public class JwtTokenUtil implements Serializable {
 //    }
 
     //generate token for user
-    public String generateToken(UserDetails userDetails, List<PermissionDto> per) {
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        Map<String, Object> permissions = new HashMap<>();
-        claims.put("iss", new Gson().toJson(per));
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
