@@ -2,7 +2,6 @@ package com.behsa.sdp.mc_wmi.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -57,9 +56,9 @@ public class AppConfig {
     private String redisPassword;
 
     @Value("${sdp.log.exchange}")
-    private String logExchange;
+    public String logExchange;
     @Value("${sdp.log.RoutingKey}")
-    private String logRoutingKey;
+    public String logRoutingKey;
     @Value("${sdp.log.SystemActive}")
     private Boolean logSystemActive;
     @Value("${sdp.log.debugMode}")
@@ -76,10 +75,10 @@ public class AppConfig {
         hikariConfig.setMaximumPoolSize(hikariMaxPollSize);
         hikariConfig.setUsername(dbUserName);
         hikariConfig.setPassword(dbPassword);
-        Long ld = hikariLeakDetectionThreshold;
-        Long ml = hikariMaxLifeTime;
-        hikariConfig.setLeakDetectionThreshold(ld);
-        hikariConfig.setMaxLifetime(ml);
+        Long leakDetectionThreshold = hikariLeakDetectionThreshold;
+        Long hikariMaxLifeTime = this.hikariMaxLifeTime;
+        hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
+        hikariConfig.setMaxLifetime(hikariMaxLifeTime);
         hikariConfig.setJdbcUrl("jdbc:oracle:thin:@" + dbHost + ":" + dbPort + "/" + dbServiceName);
         hikariConfig.setDriverClassName("oracle.jdbc.OracleDriver");
         hikariConfig.setIdleTimeout(hikariIdleTimeout);

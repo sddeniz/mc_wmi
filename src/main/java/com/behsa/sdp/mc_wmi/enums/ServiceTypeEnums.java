@@ -1,7 +1,7 @@
-package com.behsa.sdp.mc_wmi.utils;
+package com.behsa.sdp.mc_wmi.enums;
 
 public enum ServiceTypeEnums {
-    rest(1, "Rest"),
+    rest(1, "RestApiGw"),
     ussd(2, "USSD");
 
 

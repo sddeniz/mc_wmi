@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Repository
 public class RestApiRepository {
-    private final static Logger logger = LoggerFactory.getLogger(RestApiRepository.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RestApiRepository.class);
 
 
     @Autowired
@@ -55,20 +55,13 @@ public class RestApiRepository {
      */
     public TreeInfoDto getTreeId(TreeGwDto treeGwDto) {
 
-        String command = "select * from VW_TreeGw tr  where tr.type=? and tr.verApi=?  and  tr.title=? and tr.domain=? and tr.state=1";
+        String command = "select * from VW_TreeGw tr  where tr.type=? and tr.verApi=?  and  tr.GETWAYNAME=? and tr.domain=?  and tr.state=1";
+
+        LOGGER.debug("input for find Tree: type:{} , verApi:{} , getwayname:{} , domain:{} ,and show Actives "
+                , treeGwDto.getType(), treeGwDto.getVersion(), treeGwDto.getTitle(), treeGwDto.getDomain());
 
         try (Connection connection = connectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     command
-//                     "select * from VW_TreeGw tr " +
-//                     "where tr.type=? " +
-//                     "and tr.verApi=? " +
-//                     "and  tr.title=? " +
-//                     "and tr.domain=? " +
-//                     "and tr.state=1")
-
-             )) {
-
+             PreparedStatement preparedStatement = connection.prepareStatement(command)) {
             preparedStatement.setInt(1, treeGwDto.getType());
             preparedStatement.setString(2, treeGwDto.getVersion());
             preparedStatement.setString(3, treeGwDto.getTitle());
@@ -78,13 +71,11 @@ public class RestApiRepository {
             if (resultSet.next()) {
                 return new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"), resultSet.getString("OUTPUTS"));
             }
-
-            return null;
-
-        } catch (SQLException throwables) {
-            logger.error("SQL Error For Find Tree ", throwables);
-        } catch (Exception e) {
-            logger.error("Exception ", e);
+            LOGGER.debug("can not find Treee");
+        } catch (SQLException e) {
+            LOGGER.error("SQL Error For Find Tree ", e);
+        } catch (Exception ex) {
+            LOGGER.error("Exception ", ex);
         }
 
         return null;
@@ -100,7 +91,7 @@ public class RestApiRepository {
             preparedStatement.setString(1, userName.trim());
             ResultSet resultSet = preparedStatement.executeQuery();
             Map<String, PermissionDto> permissionMap = new HashMap<>();
-            if (resultSet.next()) {
+            while (resultSet.next()) {
                 permissionMap.put(resultSet.getString("serviceTitle"), new PermissionDto
                         (
                                 resultSet.getLong("id"),
@@ -118,9 +109,9 @@ public class RestApiRepository {
             }
             return permissionMap;
         } catch (SQLException throwables) {
-            logger.error("SQL Error For Find Tree ", throwables);
+            LOGGER.error("SQL Error For Find Tree ", throwables);
         } catch (Exception e) {
-            logger.error("Exception ", e);
+            LOGGER.error("Exception ", e);
         }
         return null;//todo clean this
     }

@@ -1,18 +1,18 @@
 package com.behsa.sdp.mc_wmi.service;
 
-import com.behsa.sdp.mc_wmi.config.BeanConfig;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 
 @Component
 public class CoreRedis {
     @Autowired
-    private BeanConfig beanConfig;
+    private JedisPool jedisPool;
 
     @Autowired
     private Gson gson;
@@ -26,8 +26,9 @@ public class CoreRedis {
      * @param permissionDto permissions
      */
     public void insertCacheRedis(String dsdpKey, PermissionDto permissionDto) {
+
         String redisValues = gson.toJson(permissionDto);
-        try (Jedis jedis = this.beanConfig.initializeRedis().getResource()) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.set(KEY_PREFIX_DSDP + dsdpKey, redisValues);
         } catch (JedisException e) {
             e.printStackTrace();
@@ -43,7 +44,7 @@ public class CoreRedis {
     public PermissionDto readCacheRedis(String dsdpKey) {
 
         PermissionDto permissionDto = null;
-        try (Jedis jedis = beanConfig.initializeRedis().getResource()) {
+        try (Jedis jedis = jedisPool.getResource()) {
             String str = jedis.get(KEY_PREFIX_DSDP + dsdpKey);
             if (str != null && !str.equals("")) {
                 return this.gson.fromJson(str, PermissionDto.class);

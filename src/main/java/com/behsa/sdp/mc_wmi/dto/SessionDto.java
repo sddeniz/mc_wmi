@@ -8,10 +8,13 @@ import org.springframework.web.context.request.async.DeferredResult;
  */
 public class SessionDto {
     private DeferredResult<ResponseEntity<?>> deferredResult;
-    private boolean expectResponse;
+    private String version;
+    private String serviceName;
 
-    public SessionDto(DeferredResult<ResponseEntity<?>> deferredResult) {
+    public SessionDto(DeferredResult<ResponseEntity<?>> deferredResult, String serviceName, String version) {
         this.deferredResult = deferredResult;
+        this.serviceName = serviceName;
+        this.version = version;
     }
 
     public DeferredResult<ResponseEntity<?>> getDeferredResult() {
@@ -22,11 +25,19 @@ public class SessionDto {
         this.deferredResult = deferredResult;
     }
 
-    public boolean isExpectResponse() {
-        return expectResponse;
+    public String getVersion() {
+        return version;
     }
 
-    public void setExpectResponse(boolean expectResponse) {
-        this.expectResponse = expectResponse;
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 }
