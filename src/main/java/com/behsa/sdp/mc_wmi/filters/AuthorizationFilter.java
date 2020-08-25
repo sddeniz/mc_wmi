@@ -2,7 +2,6 @@ package com.behsa.sdp.mc_wmi.filters;
 
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.dto.Authority;
-import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,24 +49,28 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             return;
         }
         UserDetails details = (UserDetails) authentication.getPrincipal();
-        PermissionDto permissionDto = null;
         for (GrantedAuthority authority : details.getAuthorities()) {
-
             if (authority.getAuthority().equals(serviceName)) {
-                //todo countinue this
-                permissionDto = (PermissionDto) authority;
-                RateLimitInterceptor.maxBind[] binds = objectMapper.readValue(permissionDto.getMaxBind(), RateLimitInterceptor.maxBind[].class);
-                for (RateLimitInterceptor.maxBind bind : binds) {
-                    logger.info(request.getRemoteAddr().trim() + " ip user");
-                    if (bind.getIp().equals(request.getRemoteAddr().trim())) {
-                        authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
-                        authentication.setAuthorized(true);
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        chain.doFilter(request, response);
-                        return;
-                    }
-                }
+                authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
+                authentication.setAuthorized(true);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                chain.doFilter(request, response);
+                return;
             }
+//            //todo countinue this
+//            permissionDto = (PermissionDto) authority;
+//            RateLimitInterceptor.maxBind[] binds = objectMapper.readValue(permissionDto.getMaxBind(), RateLimitInterceptor.maxBind[].class);
+//            for (RateLimitInterceptor.maxBind bind : binds) {
+//                logger.info(request.getRemoteAddr().trim() + " ip user");
+//                if (bind.getIp().equals(request.getRemoteAddr().trim())) {
+//                    authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
+//                    authentication.setAuthorized(true);
+//                    SecurityContextHolder.getContext().setAuthentication(authentication);
+//                    chain.doFilter(request, response);
+//                    return;
+//                }
+//            }
+
         }
         chain.doFilter(request, response);
     }

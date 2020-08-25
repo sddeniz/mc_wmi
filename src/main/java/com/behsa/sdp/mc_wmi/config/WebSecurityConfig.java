@@ -3,6 +3,7 @@ package com.behsa.sdp.mc_wmi.config;
 
 import com.behsa.sdp.mc_wmi.filters.AuthenticationFilter;
 import com.behsa.sdp.mc_wmi.filters.AuthorizationFilter;
+import com.behsa.sdp.mc_wmi.filters.BindFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthorizationFilter authorizationFilter;
     @Autowired
     private DsdpAuthenticationProvider authProvider;
+
+    @Autowired
+    private BindFilter bindFilter;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -77,8 +81,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 // Add a filter to validate the tokens with every request
+//        httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//        httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
+
         httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
+        httpSecurity.addFilterAt(bindFilter, AuthenticationFilter.class);
+        httpSecurity.addFilterAfter(authorizationFilter, BindFilter.class);
+
     }
 
 }

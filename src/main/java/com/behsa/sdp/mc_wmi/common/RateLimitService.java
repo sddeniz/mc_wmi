@@ -49,7 +49,6 @@ public class RateLimitService {
         if (ipRateMap.get(key) == null) {
             ipRateMap.put(key, currentIpSize.get());
             return true;
-
         } else if (currentIpSize.get() > maxBind) {
             return false;
         } else {

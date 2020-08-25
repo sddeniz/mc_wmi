@@ -85,5 +85,4 @@ public class BeanConfig {
         return amqpHelper;
     }
 
-
 }

@@ -2,9 +2,15 @@ package com.behsa.sdp.mc_wmi.service;
 
 import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
 import com.behsa.sdp.mc_wmi.common.SessionManager;
+import com.behsa.sdp.mc_wmi.dto.ApiOutputDto;
 import com.behsa.sdp.mc_wmi.dto.SessionDto;
+import com.behsa.sdp.mc_wmi.dto.TreeInfoDto;
 import com.behsa.sdp.mc_wmi.enums.EventTypeEnums;
 import com.behsa.sdp.mc_wmi.log.APILogger;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import sdpMsSdk.ISdpHandlerAsync;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 
 //import models.SdpMsException;
@@ -31,6 +38,14 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
     @Autowired
     private APILogger apiLogger;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @PostConstruct
+    void init() {
+        objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+    }
+
 
     @Override
     public void OnReceive(JSONObject jsonObject, String trackCode, JSONObject jsonObject1, String s1, long l, String s2) {
@@ -38,12 +53,13 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         SessionDto session = null;
         try {
             session = sessionManager.getSession(trackCode);
-            //todo add wapper 
-            jsonObject.remove("sdp_userId");
-            jsonObject.put("DSDP_Code", trackCode);
-            ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(jsonObject, HttpStatus.OK);
-            jsonObject.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
-            jsonObject.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
+            //todo add wapper
+            JSONObject responseAfterWrap = wrapperOutPut(session.getServiceName(), jsonObject);
+//            jsonObject.remove("sdp_userId");
+            responseAfterWrap.put("DSDP_Code", trackCode);
+            ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(responseAfterWrap, HttpStatus.OK);
+            responseAfterWrap.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
+            responseAfterWrap.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
             session.getDeferredResult().setResult(jsonObjectResponseEntity);
             sessionManager.removeSession(trackCode);
             LOGGER.debug("response to trackCode:{}  , status:{}", trackCode, jsonObjectResponseEntity.getStatusCode());
@@ -76,7 +92,25 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
     }
 
 
-    private void wrapperOutPut() {
-        cacheRestAPI.getHashMap("sadad");//todo edit this
+    private JSONObject wrapperOutPut(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
+        TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
+        ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
+        JSONObject apiJsonObj = new JSONObject();
+        if (outPutDto == null || outPutDto.length == 0) {
+            return apiJsonObj;
+        }
+        for (ApiOutputDto output : outPutDto) {
+            if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
+                break;
+            } else if (output.getExpose().equals("true")) {
+                apiJsonObj.put(output.getTitle(), jsonObject.get(output.getName()));
+            } else {
+                apiJsonObj.put(output.getTitle(), output.getDefaultValue());
+            }
+        }
+
+        return apiJsonObj;
+
+
     }
 }

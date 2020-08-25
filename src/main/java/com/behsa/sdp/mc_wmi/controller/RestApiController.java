@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -43,8 +46,10 @@ public class RestApiController {
 
     @Autowired
     private SessionManager sessionManager;
+
     @Autowired
     private Gson gson;
+
     @Autowired
     private ServiceUtils serviceUtils;
 
@@ -60,7 +65,7 @@ public class RestApiController {
     @Autowired
     private APILogger apiLogger;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
     void init() {
@@ -73,7 +78,7 @@ public class RestApiController {
     DeferredResult<ResponseEntity<?>> triggerSync(@PathVariable("serviceName") String serviceName,
                                                   @RequestParam("ver") String version,
                                                   @RequestBody(required = false) JSONObject payload,
-                                                  HttpServletRequest request) throws Exception {
+                                                  HttpServletRequest request) {
 
         long startTime = new Date().getTime();
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
@@ -104,6 +109,11 @@ public class RestApiController {
             if (infoDtoCache == null) {
                 cacheTreeGw.setHashMap(serviceName, treeInfoDto);
             }
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails principal = (UserDetails) authentication.getPrincipal();
+            principal.getUsername();
+
             boolean haveTree = validationInputService.isHaveTree(treeInfoDto);
             if (!haveTree) {
                 ResponseEntity<JSONObject> response = errorResponse("Service is wrong or is not Active", trackCode, HttpStatus.NOT_FOUND);

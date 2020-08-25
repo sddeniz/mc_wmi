@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 
 @Service
-public class SdpServices {
+public class RestApiResponseServices {
 
     @Autowired
     private SdpHelper sdpHelper;
