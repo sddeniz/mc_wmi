@@ -138,7 +138,9 @@ public class RestApiController {
             LOGGER.debug("track code:{} , instanceKey:{} , mapPayLoad:{} , channel name:sdp_api and serviceName api_request "
                     , trackCode, serviceUtils.getServiceInstanceKey(), mapPayLoad);
 
-            sdpHelper.sendStartProcess("sdp_api", "api_request",
+            sdpHelper.sendStartProcess("sdp_api",
+//                    "api_request",
+                    serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
             LOGGER.debug("send Success");

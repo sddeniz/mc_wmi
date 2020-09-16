@@ -18,6 +18,7 @@ public class APILogger {
     private AppConfig appConfig;
     @Autowired
     private Gson gson;
+
     @Autowired
     private AmqpHelper amqpHelper;
 

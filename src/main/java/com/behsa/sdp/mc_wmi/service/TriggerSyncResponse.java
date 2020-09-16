@@ -91,25 +91,32 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         }
     }
 
-
+    /**
+     * wrapper for out put result of tree
+     *
+     * @param serviceName
+     * @param jsonObject
+     * @return
+     * @throws JsonProcessingException
+     */
     private JSONObject wrapperOutPut(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
-        JSONObject apiJsonObj = new JSONObject();
+        JSONObject apiJsonObjWrapper = new JSONObject();
         if (outPutDto == null || outPutDto.length == 0) {
-            return apiJsonObj;
+            return apiJsonObjWrapper;
         }
         for (ApiOutputDto output : outPutDto) {
             if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
                 break;
             } else if (output.getExpose().equals("true")) {
-                apiJsonObj.put(output.getTitle(), jsonObject.get(output.getName()));
+                apiJsonObjWrapper.put(output.getTitle(), jsonObject.get(output.getName()));
             } else {
-                apiJsonObj.put(output.getTitle(), output.getDefaultValue());
+                apiJsonObjWrapper.put(output.getTitle(), output.getDefaultValue());
             }
         }
 
-        return apiJsonObj;
+        return apiJsonObjWrapper;
 
 
     }
