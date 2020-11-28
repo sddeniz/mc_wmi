@@ -73,6 +73,13 @@ public class RestApiController {
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
+
+    @RequestMapping(method = {RequestMethod.POST/*, RequestMethod.GET*/}, value = "/havij")
+    public void test1(@RequestBody(required = false) JSONObject jsonObject) {
+        System.out.println("got it");
+    }
+
+
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, value = "/api/call/{serviceName}")
     public @ResponseBody
     DeferredResult<ResponseEntity<?>> triggerSync(@PathVariable("serviceName") String serviceName,
@@ -91,6 +98,8 @@ public class RestApiController {
                 return output;
             }
             String host = request.getServerName().trim();
+            System.out.println("host is :" + host);//todo clean this
+
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
@@ -143,7 +152,7 @@ public class RestApiController {
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
-            LOGGER.debug("send Success");
+            LOGGER.debug("send Success************************************************* ");
 
             this.apiLogger.insert(serviceName,
                     trackCode,

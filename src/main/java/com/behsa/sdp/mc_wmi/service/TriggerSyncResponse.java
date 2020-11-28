@@ -54,6 +54,7 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         try {
             session = sessionManager.getSession(trackCode);
             //todo add wapper
+            System.out.println("come for response ------------------------------------------ ");
             JSONObject responseAfterWrap = wrapperOutPut(session.getServiceName(), jsonObject);
 //            jsonObject.remove("sdp_userId");
             responseAfterWrap.put("DSDP_Code", trackCode);
@@ -103,10 +104,13 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
         JSONObject apiJsonObjWrapper = new JSONObject();
+
+        System.out.println("output  dt");
         if (outPutDto == null || outPutDto.length == 0) {
             return apiJsonObjWrapper;
         }
         for (ApiOutputDto output : outPutDto) {
+            System.out.println("output  " + output.toString() + " *******---------*******");
             if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
                 break;
             } else if (output.getExpose().equals("true")) {
