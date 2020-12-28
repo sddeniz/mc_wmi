@@ -1,10 +1,12 @@
 package com.behsa.sdp.mc_wmi.repository;
 
 import com.behsa.sdp.mc_wmi.common.ConnectionProvider;
+import com.behsa.sdp.mc_wmi.dto.MaxBind;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.dto.TreeGwDto;
 import com.behsa.sdp.mc_wmi.dto.TreeInfoDto;
-import com.behsa.sdp.mc_wmi.utils.AppConfig;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import common.CoreException;
 import models.Recipe;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,14 +23,14 @@ import java.util.Map;
 
 @Repository
 public class RestApiRepository {
-    private final static Logger LOGGER = LoggerFactory.getLogger(RestApiRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestApiRepository.class);
 
-
+    private Type maxBindType = new TypeToken<List<MaxBind>>() {
+    }.getType();
     @Autowired
-    ConnectionProvider connectionProvider;
+    private ConnectionProvider connectionProvider;
     @Autowired
-    AppConfig appConfig;
-
+    private Gson gson;
 
     public List<Recipe> getRestApiRepository() throws CoreException {
         List<Recipe> recipe = new ArrayList<>(); //todo edit this
@@ -101,7 +104,7 @@ public class RestApiRepository {
                                 resultSet.getLong("tpd"),
                                 resultSet.getString("startdate"),
                                 resultSet.getString("enddate"),
-                                resultSet.getString("maxbind"),
+                                gson.fromJson(resultSet.getString("maxbind"), maxBindType),
                                 resultSet.getString("servicetimeout"),
                                 resultSet.getLong("userId"),
                                 resultSet.getLong("serviceid")

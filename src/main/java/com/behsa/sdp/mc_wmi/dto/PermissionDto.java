@@ -1,6 +1,10 @@
 package com.behsa.sdp.mc_wmi.dto;
 
-public class PermissionDto extends Authority {
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class PermissionDto {
 
     private Long id;
     private String userName;
@@ -9,13 +13,12 @@ public class PermissionDto extends Authority {
     private Long tpd;
     private String startDatePermission;
     private String endDatePermission;
-    private String maxBind;
+    private Map<String, Integer> maxBind;
     private String serviceTimeOut;
     private Long userId;
     private Long serviceId;
 
-    public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd, String startDatePermission, String endDatePermission, String maxBind, String serviceTimeOut, Long userId, Long serviceId) {
-        super(serviceTitle);
+    public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd, String startDatePermission, String endDatePermission, List<MaxBind> maxBind, String serviceTimeOut, Long userId, Long serviceId) {
         this.id = id;
         this.userName = userName;
         this.serviceTitle = serviceTitle;
@@ -23,7 +26,7 @@ public class PermissionDto extends Authority {
         this.tpd = tpd;
         this.startDatePermission = startDatePermission;
         this.endDatePermission = endDatePermission;
-        this.maxBind = maxBind;
+        this.maxBind = maxBind.stream().collect(Collectors.toMap(MaxBind::getIp, MaxBind::getMaxBind));
         this.serviceTimeOut = serviceTimeOut;
         this.userId = userId;
         this.serviceId = serviceId;
@@ -85,11 +88,11 @@ public class PermissionDto extends Authority {
         this.endDatePermission = endDatePermission;
     }
 
-    public String getMaxBind() {
+    public Map<String, Integer> getMaxBind() {
         return maxBind;
     }
 
-    public void setMaxBind(String maxBind) {
+    public void setMaxBind(Map<String, Integer> maxBind) {
         this.maxBind = maxBind;
     }
 

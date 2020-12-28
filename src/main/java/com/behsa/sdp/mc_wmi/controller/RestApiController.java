@@ -98,7 +98,7 @@ public class RestApiController {
                 return output;
             }
             String host = request.getServerName().trim();
-            System.out.println("host is :" + host);//todo clean this
+            LOGGER.debug("host is :{}", host);
 
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
@@ -148,7 +148,6 @@ public class RestApiController {
                     , trackCode, serviceUtils.getServiceInstanceKey(), mapPayLoad);
 
             sdpHelper.sendStartProcess("sdp_api",
-//                    "api_request",
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
@@ -273,12 +272,10 @@ public class RestApiController {
                                                    @RequestBody JSONObject payload,
                                                    HttpServletRequest request) throws Exception {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
-        System.out.println("response");
-        SessionDto session = sessionManager.getSession(trackCode);
+         SessionDto session = sessionManager.getSession(trackCode);
         session.setDeferredResult(output);
         sdpHelper.sendResponse(payload, trackCode);
-        System.out.println("service response sent, trackCode: " + trackCode);
-        return output;
+         return output;
     }
 
     @PostMapping(value = "/trigger/{channelName}/{triggerName}")
@@ -292,8 +289,7 @@ public class RestApiController {
             if (trackCode == null || trackCode.equals("")) {
                 throw new Exception("خطا در ثبت درخواست");
             }
-            System.out.println("request sent, trackCode: " + trackCode);
-            return new ResponseEntity<>(new TriggerAsyncResponseDto("ORDINARY", trackCode, null),
+             return new ResponseEntity<>(new TriggerAsyncResponseDto("ORDINARY", trackCode, null),
                     HttpStatus.OK);
         } catch (Exception e) {
             JSONObject jo = new JSONObject();

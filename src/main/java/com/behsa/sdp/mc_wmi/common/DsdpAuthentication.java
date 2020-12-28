@@ -1,55 +1,35 @@
 package com.behsa.sdp.mc_wmi.common;
 
-import org.springframework.security.core.AuthenticatedPrincipal;
+import com.behsa.sdp.mc_wmi.dto.Authority;
+import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.CredentialsContainer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.security.auth.Subject;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class DsdpAuthentication implements Authentication {
     private static final long serialVersionUID = 3781835596190060415L;
-    private final Object principal;
-    private Collection<GrantedAuthority> authorities;
+    private final DsdpUser principal;
+    private List<Authority> authorities;
+    private Map<String, PermissionDto> permissions;
     private Object details;
     private Object credentials;
     private boolean authenticated = false;
     private boolean authorized = false;
 
-    public DsdpAuthentication(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+    public DsdpAuthentication(DsdpUser principal, Object credentials, Map<String, PermissionDto> permissions, List<Authority> authorities) {
         this.principal = principal;
         this.credentials = credentials;
-        if (authorities == null) {
-            this.authorities = AuthorityUtils.NO_AUTHORITIES;
-        } else {
-            Iterator var2 = authorities.iterator();
-            GrantedAuthority a;
-            do {
-                if (!var2.hasNext()) {
-                    ArrayList<GrantedAuthority> temp = new ArrayList(authorities.size());
-                    temp.addAll(authorities);
-                    this.authorities = Collections.synchronizedCollection(temp);
-                    return;
-                }
-
-                a = (GrantedAuthority) var2.next();
-            } while (a != null);
-        }
-
+        this.authorities = authorities;
+        this.permissions = permissions;
     }
 
-    public void addAuthorities(GrantedAuthority authority) {
+    public void addAuthorities(Authority authority) {
         this.authorities.add(authority);
     }
 
-    public void removeAuthorities(GrantedAuthority authority) {
+    public void removeAuthorities(PermissionDto authority) {
         this.authorities.remove(authority);
     }
 
@@ -59,24 +39,20 @@ public class DsdpAuthentication implements Authentication {
     }
 
     @Override
-    public Object getPrincipal() {
+    public DsdpUser getPrincipal() {
         return this.principal;
     }
 
-    public Collection<GrantedAuthority> getAuthorities() {
+    public List<Authority> getAuthorities() {
         return this.authorities;
     }
 
+    public Map<String, PermissionDto> getPermissions() {
+        return permissions;
+    }
+
     public String getName() {
-        if (this.getPrincipal() instanceof UserDetails) {
-            return ((UserDetails) this.getPrincipal()).getUsername();
-        } else if (this.getPrincipal() instanceof AuthenticatedPrincipal) {
-            return ((AuthenticatedPrincipal) this.getPrincipal()).getName();
-        } else if (this.getPrincipal() instanceof Principal) {
-            return ((Principal) this.getPrincipal()).getName();
-        } else {
-            return this.getPrincipal() == null ? "" : this.getPrincipal().toString();
-        }
+        return this.getPrincipal().getUsername();
     }
 
     @Override
@@ -108,12 +84,5 @@ public class DsdpAuthentication implements Authentication {
 
     public void setDetails(Object details) {
         this.details = details;
-    }
-
-    private void eraseSecret(Object secret) {
-        if (secret instanceof CredentialsContainer) {
-            ((CredentialsContainer) secret).eraseCredentials();
-        }
-
     }
 }

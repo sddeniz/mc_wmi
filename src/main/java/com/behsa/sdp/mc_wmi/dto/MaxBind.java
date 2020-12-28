@@ -3,8 +3,6 @@ package com.behsa.sdp.mc_wmi.dto;
 import java.io.Serializable;
 
 public class MaxBind implements Serializable {
-
-
     private String ip;
     private int maxBind;
 

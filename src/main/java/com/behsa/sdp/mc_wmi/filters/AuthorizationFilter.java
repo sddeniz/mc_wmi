@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -48,29 +46,12 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-        UserDetails details = (UserDetails) authentication.getPrincipal();
-        for (GrantedAuthority authority : details.getAuthorities()) {
-            if (authority.getAuthority().equals(serviceName)) {
-                authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
-                authentication.setAuthorized(true);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                chain.doFilter(request, response);
-                return;
-            }
-//            //todo countinue this
-//            permissionDto = (PermissionDto) authority;
-//            RateLimitInterceptor.maxBind[] binds = objectMapper.readValue(permissionDto.getMaxBind(), RateLimitInterceptor.maxBind[].class);
-//            for (RateLimitInterceptor.maxBind bind : binds) {
-//                logger.info(request.getRemoteAddr().trim() + " ip user");
-//                if (bind.getIp().equals(request.getRemoteAddr().trim())) {
-//                    authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
-//                    authentication.setAuthorized(true);
-//                    SecurityContextHolder.getContext().setAuthentication(authentication);
-//                    chain.doFilter(request, response);
-//                    return;
-//                }
-//            }
-
+        if (authentication.getPermissions().containsKey(serviceName)) {
+            authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
+            authentication.setAuthorized(true);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            chain.doFilter(request, response);
+            return;
         }
         chain.doFilter(request, response);
     }

@@ -28,7 +28,7 @@ public class BillRepository {
         try {
             try (Connection connection = connectionProvider.getConnection();
                  CallableStatement stmt = connection.prepareCall
-                         ("{call USSD_MIGRATE_BIZ_ts.pkg_billing_dsdp.prc_get_status_account_gateway(?,?,?,?)}")
+                         ("{call USSD_MIGRATE_BIZ.pkg_billing_dsdp.prc_get_status_account_gateway(?,?,?,?)}")
             ) {
                 stmt.setString(1, serviceTitle);
                 stmt.registerOutParameter(2, oracle.jdbc.OracleTypes.NUMBER);

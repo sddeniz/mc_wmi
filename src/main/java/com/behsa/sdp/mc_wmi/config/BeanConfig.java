@@ -1,6 +1,7 @@
 package com.behsa.sdp.mc_wmi.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import common.CoreException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -70,7 +71,10 @@ public class BeanConfig {
 
     @Bean
     public Gson getGson() {
-        return new Gson();
+        return new GsonBuilder()
+                .setPrettyPrinting()
+                .serializeNulls()
+                .create();
     }
 
     @Bean
