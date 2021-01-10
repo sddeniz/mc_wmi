@@ -21,11 +21,7 @@ public class RestApiResponseServices {
 
     @PostConstruct
     private void initialize() {
-
-        System.out.println("*******" + serviceUtils.getServiceInstanceKey());
-        System.out.println("*******" + "sdp_api/RestEnd/" + serviceUtils.getServiceInstanceKey());
         try {
-            System.out.println("que res :" + "sdp_api/api_response/" + serviceUtils.getServiceInstanceKey());
             sdpHelper.startConsumeAsync("sdp_api/RestEnd/" + serviceUtils.getServiceInstanceKey(), 1, true, triggerSyncResponse);//todo change to rest API
         } catch (IOException e) {
             e.printStackTrace();

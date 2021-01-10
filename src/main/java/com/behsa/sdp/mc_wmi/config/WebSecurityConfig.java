@@ -70,6 +70,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 // dont authenticate this particular request
                 .authorizeRequests().
                 antMatchers("/api/call/**").hasAuthority("SERVICE_ACCESS").
+                antMatchers("/serviceToken").authenticated().
                 antMatchers("/authenticate").permitAll().
 
 // all other requests need to be authenticated
@@ -85,6 +86,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //        httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
 
         httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+//        httpSecurity.addFilterAfter(authenticationFilter, AuthenticationFilter.class);
+//        httpSecurity.addFilterAfter(authorizationFilter, BindFilter.class);
+
         httpSecurity.addFilterAt(bindFilter, AuthenticationFilter.class);
         httpSecurity.addFilterAfter(authorizationFilter, BindFilter.class);
 

@@ -51,6 +51,10 @@ public class DsdpAuthentication implements Authentication {
         return permissions;
     }
 
+    public void setPermissions(Map<String, PermissionDto> permissions) {
+        this.permissions = permissions;
+    }
+
     public String getName() {
         return this.getPrincipal().getUsername();
     }

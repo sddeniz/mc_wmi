@@ -13,5 +13,4 @@ public class ValueCastHelper {
         }
         return null;
     }
-
 }

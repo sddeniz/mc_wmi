@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 public class JwtResponse implements Serializable {
 
-     private final String jwttoken;
+     private final String token;
 
-    public JwtResponse(String jwttoken) {
-        this.jwttoken = jwttoken;
+    public JwtResponse(String token) {
+        this.token = token;
     }
 
     public String getToken() {
-        return this.jwttoken;
+        return this.token;
     }
 }

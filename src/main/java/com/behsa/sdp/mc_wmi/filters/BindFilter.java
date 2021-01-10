@@ -3,6 +3,7 @@ package com.behsa.sdp.mc_wmi.filters;
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.redis.CoreRedis;
+import com.behsa.sdp.mc_wmi.repository.HeaderKey;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +37,9 @@ public class BindFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return request.getRequestURI().equals("/authenticate") || authentication == null;
+        return request.getRequestURI().equals("/authenticate")
+                || request.getRequestURI().equals("/serviceToken")
+                || authentication == null;
     }
 
     @Override
@@ -51,8 +54,10 @@ public class BindFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        Integer maxBindCount = permissionDto.getMaxBind().get(requestIp);
-        if (maxBindCount == null) {
+        int ipMaxBind = checkIpAuth(request, permissionDto, requestIp);
+
+        Integer maxBindCount = 250;//permissionDto.getMaxBind().get(requestIp);//todo repair this
+        if (ipMaxBind == 0 || maxBindCount == null) {
             SecurityContextHolder.getContext().setAuthentication(null);
             filterChain.doFilter(request, response);
             return;
@@ -77,4 +82,11 @@ public class BindFilter extends OncePerRequestFilter {
 
     }
 
+    private int checkIpAuth(HttpServletRequest request, PermissionDto permissionDto, String requestIp) {
+        String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);
+        if (serviceToken == null && permissionDto.getMaxBind().get("0.0.0.0") == null) { //open add ips
+            return permissionDto.getMaxBind().get(requestIp);
+        }
+        return -1;
+    }
 }

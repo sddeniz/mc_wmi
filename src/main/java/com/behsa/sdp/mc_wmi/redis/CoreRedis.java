@@ -132,13 +132,35 @@ public class CoreRedis {
 
     public void setAuthentication(String key, DsdpAuthentication authentication) {
         try (Jedis jedis = this.jedisPool.getResource()) {
-            jedis.setex(KEY_PREFIX_DSDP + key,tokenValidate, gson.toJson(authentication));
-         } catch (JedisException e) {
+            jedis.setex(KEY_PREFIX_DSDP + key, tokenValidate, gson.toJson(authentication));
+        } catch (JedisException e) {
             LOGGER.error("setAuthentication with authentication:{} ", authentication, e);
         }
     }
 
+    public void setAuthenticationSaltToken(String key, DsdpAuthentication servicesAccess) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            jedis.setex(KEY_PREFIX_DSDP + key, tokenValidate, gson.toJson(servicesAccess));
+        } catch (JedisException e) {
+            LOGGER.error("setAuthentication with authentication:{} ", servicesAccess, e);
+        }
+    }
+
+
     public DsdpAuthentication getAuthentication(String token) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String str = jedis.get(KEY_PREFIX_DSDP + token);
+            if (str == null || str.equals("")) {
+                return null;
+            }
+            return gson.fromJson(str, DsdpAuthentication.class);
+        } catch (JedisException e) {
+            LOGGER.error("getAuthentication with token:{} ", token, e);
+            return null;
+        }
+    }
+
+    public DsdpAuthentication getAuthenticationServiceToken(String token) {
         try (Jedis jedis = jedisPool.getResource()) {
             String str = jedis.get(KEY_PREFIX_DSDP + token);
             if (str == null || str.equals("")) {

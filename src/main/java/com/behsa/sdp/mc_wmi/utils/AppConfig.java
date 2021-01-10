@@ -70,15 +70,15 @@ public class AppConfig {
 
     @Bean
     public HikariDataSource createHikariConnection() {
+
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setMinimumIdle(hikariMinIdle);
         hikariConfig.setMaximumPoolSize(hikariMaxPollSize);
         hikariConfig.setUsername(dbUserName);
         hikariConfig.setPassword(dbPassword);
         Long leakDetectionThreshold = hikariLeakDetectionThreshold;
-        Long hikariMaxLifeTime = this.hikariMaxLifeTime;
         hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
-        hikariConfig.setMaxLifetime(hikariMaxLifeTime);
+        hikariConfig.setMaxLifetime(this.hikariMaxLifeTime);
         hikariConfig.setJdbcUrl("jdbc:oracle:thin:@" + dbHost + ":" + dbPort + "/" + dbServiceName);
         hikariConfig.setDriverClassName("oracle.jdbc.OracleDriver");
         hikariConfig.setIdleTimeout(hikariIdleTimeout);

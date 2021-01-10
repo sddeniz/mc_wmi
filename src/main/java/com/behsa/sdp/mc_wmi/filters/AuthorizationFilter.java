@@ -2,9 +2,11 @@ package com.behsa.sdp.mc_wmi.filters;
 
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.dto.Authority;
+import com.behsa.sdp.mc_wmi.redis.CoreRedis;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,11 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+
+    @Autowired
+    private CoreRedis coreRedis;
+
+
     @PostConstruct
     void init() {
         objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
@@ -32,8 +39,11 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return request.getRequestURI().equals("/authenticate") || authentication == null;
+        return request.getRequestURI().equals("/authenticate")
+                || request.getRequestURI().equals("/serviceToken")
+                || authentication == null;
     }
+
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -56,4 +66,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+
 }
+
+
