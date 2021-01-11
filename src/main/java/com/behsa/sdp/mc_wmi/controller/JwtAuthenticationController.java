@@ -51,9 +51,7 @@ public class JwtAuthenticationController {
     @RequestMapping(value = "/serviceToken", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationServiceToken(@RequestBody(required = true) JSONObject payload, HttpServletRequest request) {
         try {
-
-            List<String> inputServiceList = (List<String>) payload.get("services");
-
+           List<String> inputServiceList = (List<String>) payload.get("services");
             if (inputServiceList.isEmpty()) {
                 return ResponseEntity.ok(new JwtResponse(""));
             }

@@ -98,7 +98,7 @@ public class RestApiController {
                 return output;
             }
             String host = request.getServerName().trim();
-            LOGGER.debug("host is :{}", host);
+            LOGGER.info("------------------- > host is :{}", host);
 
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
@@ -220,9 +220,16 @@ public class RestApiController {
 
         ApiInputDto[] dbResultApiInput = objectMapper.readValue(treeInfoDto.getInputs(), ApiInputDto[].class);
         JSONObject apiJsonObj = new JSONObject();
-        if (dbResultApiInput == null || dbResultApiInput.length == 0 || payload == null) {
+        if (treeInfoDto.getInputs().equals("[]")) {
+            apiJsonObj.put("apiType", "String");
+            apiJsonObj.put("", "");
             return apiJsonObj;
         }
+
+        if ((dbResultApiInput == null || dbResultApiInput.length == 0 || payload == null)) {
+            return apiJsonObj;
+        }
+
 
         for (ApiInputDto apiInputDto : dbResultApiInput) {
             String value = "";
@@ -234,6 +241,7 @@ public class RestApiController {
             apiJsonObj.put("apiType", apiInputDto.getType());
             apiJsonObj.put(apiInputDto.getName(), value);
         }
+
         return apiJsonObj;
     }
 
