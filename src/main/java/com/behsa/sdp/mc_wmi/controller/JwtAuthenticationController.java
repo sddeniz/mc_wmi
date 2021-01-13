@@ -56,8 +56,7 @@ public class JwtAuthenticationController {
                 return ResponseEntity.ok(new JwtResponse(""));
             }
 
-
-            final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
+             final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
             DsdpAuthentication authentication = this.coreRedis.getAuthentication(authToken);
             if (authentication == null) {
                 return ResponseEntity.ok(new SaltTokenResponse("Error"));

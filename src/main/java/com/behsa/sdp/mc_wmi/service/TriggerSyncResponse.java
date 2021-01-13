@@ -1,5 +1,6 @@
 package com.behsa.sdp.mc_wmi.service;
 
+import Enums.ActionFieldValueType;
 import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
 import com.behsa.sdp.mc_wmi.common.SessionManager;
 import com.behsa.sdp.mc_wmi.dto.ApiOutputDto;
@@ -54,10 +55,12 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         try {
             session = sessionManager.getSession(trackCode);
             JSONObject responseAfterWrap = wrapperOutPut(session.getServiceName(), jsonObject);
-            responseAfterWrap.put("DSDP_Code", trackCode);
             ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(responseAfterWrap, HttpStatus.OK);
+
+            responseAfterWrap.put("ApiGw_Code", trackCode);
             responseAfterWrap.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
             responseAfterWrap.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
+
             session.getDeferredResult().setResult(jsonObjectResponseEntity);
             sessionManager.removeSession(trackCode);
             LOGGER.debug("response to trackCode:{}  , status:{}", trackCode, jsonObjectResponseEntity.getStatusCode());
@@ -101,12 +104,16 @@ public class TriggerSyncResponse implements ISdpHandlerAsync {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
         JSONObject apiJsonObjWrapper = new JSONObject();
-         if (outPutDto == null || outPutDto.length == 0) {
+        if (outPutDto == null || outPutDto.length == 0) {
             return apiJsonObjWrapper;
         }
+
+
         for (ApiOutputDto output : outPutDto) {
-             if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
+            if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
                 break;
+            } else if (output.getType().equals(String.valueOf(ActionFieldValueType.Html)) && output.getExpose().equals("true")) {
+                apiJsonObjWrapper = jsonObject;
             } else if (output.getExpose().equals("true")) {
                 apiJsonObjWrapper.put(output.getTitle(), jsonObject.get(output.getName()));
             } else {
