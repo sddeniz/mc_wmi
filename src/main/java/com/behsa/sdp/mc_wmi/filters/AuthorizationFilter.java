@@ -1,6 +1,7 @@
 package com.behsa.sdp.mc_wmi.filters;
 
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
+import com.behsa.sdp.mc_wmi.common.ServiceUtils;
 import com.behsa.sdp.mc_wmi.dto.Authority;
 import com.behsa.sdp.mc_wmi.redis.CoreRedis;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -47,8 +48,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        String pathVariables = request.getRequestURI();
-        String serviceName = pathVariables.replace("/api/call/", "");
+         String serviceName = ServiceUtils.findServiceNameAndType(request);
 
         if (serviceName.isEmpty()) {
             logger.error("FORBIDDEN");
@@ -56,6 +56,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
+
         if (authentication.getPermissions().containsKey(serviceName)) {
             authentication.addAuthorities(new Authority("SERVICE_ACCESS"));
             authentication.setAuthorized(true);

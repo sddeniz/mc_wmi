@@ -2,7 +2,10 @@ package com.behsa.sdp.mc_wmi.enums;
 
 public enum ServiceTypeEnums {
     rest(1, "RestApiGw"),
-    ussd(2, "USSD");
+    soap(2, "SoapApiGw"),
+    web(3, "WebView"),
+    ussd(4, "USSD"),
+    notDefine(-1, "-");
 
 
     private int code;
@@ -27,6 +30,14 @@ public enum ServiceTypeEnums {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public static ServiceTypeEnums getEnum(int code) {
+        for (ServiceTypeEnums e : values()) {
+            if (e.getCode() == (code))
+                return e;
+        }
+        return notDefine;
     }
 
 }

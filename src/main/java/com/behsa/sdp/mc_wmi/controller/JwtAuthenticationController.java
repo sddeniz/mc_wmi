@@ -10,6 +10,7 @@ import com.behsa.sdp.mc_wmi.repository.HeaderKey;
 import com.behsa.sdp.mc_wmi.repository.JwtRequest;
 import com.behsa.sdp.mc_wmi.repository.JwtResponse;
 import com.behsa.sdp.mc_wmi.repository.SaltTokenResponse;
+import common.EncryptUtil;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +36,17 @@ public class JwtAuthenticationController {
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
         try {
-            final DsdpUser userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-
+            final DsdpUser userDetails = userDetailsService.checkAndLoadUser(authenticationRequest.getUsername(), EncryptUtil.encrypt(authenticationRequest.getPassword()));
             DsdpAuthentication authentication = new DsdpAuthentication(userDetails, null, userDetails.getPermissions(), Collections.emptyList());
             final String token = UUID.randomUUID().toString();
             coreRedis.setAuthentication(token, authentication);
+
             return ResponseEntity.ok(new JwtResponse(token));
         } catch (Exception zx) {
             zx.printStackTrace();
+
+            //todo
+//            return ResponseEntity.badRequest();
         }
         return null;
     }
@@ -51,12 +55,13 @@ public class JwtAuthenticationController {
     @RequestMapping(value = "/serviceToken", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationServiceToken(@RequestBody(required = true) JSONObject payload, HttpServletRequest request) {
         try {
-           List<String> inputServiceList = (List<String>) payload.get("services");
+
+            List<String> inputServiceList = (List<String>) payload.get("services");
             if (inputServiceList.isEmpty()) {
                 return ResponseEntity.ok(new JwtResponse(""));
             }
 
-             final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
+            final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
             DsdpAuthentication authentication = this.coreRedis.getAuthentication(authToken);
             if (authentication == null) {
                 return ResponseEntity.ok(new SaltTokenResponse("Error"));

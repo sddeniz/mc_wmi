@@ -1,5 +1,7 @@
 package com.behsa.sdp.mc_wmi.dto;
 
+import com.behsa.sdp.mc_wmi.enums.ServiceTypeEnums;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,6 +19,25 @@ public class PermissionDto {
     private String serviceTimeOut;
     private Long userId;
     private Long serviceId;
+    private ServiceTypeEnums serviceTypeEnums;
+
+
+    public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd,
+                         String startDatePermission, String endDatePermission,
+                         List<MaxBind> maxBind, String serviceTimeOut, Long userId, Long serviceId, ServiceTypeEnums serviceTypeEnums) {
+        this.id = id;
+        this.userName = userName;
+        this.serviceTitle = serviceTitle;
+        this.tps = tps;
+        this.tpd = tpd;
+        this.startDatePermission = startDatePermission;
+        this.endDatePermission = endDatePermission;
+        this.maxBind = maxBind.stream().collect(Collectors.toMap(MaxBind::getIp, MaxBind::getMaxBind));
+        this.serviceTimeOut = serviceTimeOut;
+        this.userId = userId;
+        this.serviceId = serviceId;
+        this.serviceTypeEnums = (serviceTypeEnums);
+    }
 
     public PermissionDto(Long id, String userName, String serviceTitle, Long tps, Long tpd, String startDatePermission, String endDatePermission, List<MaxBind> maxBind, String serviceTimeOut, Long userId, Long serviceId) {
         this.id = id;
@@ -120,19 +141,30 @@ public class PermissionDto {
         this.serviceId = serviceId;
     }
 
+
+    public ServiceTypeEnums getServiceTypeEnums() {
+        return serviceTypeEnums;
+    }
+
+    public void setServiceTypeEnums(ServiceTypeEnums serviceTypeEnums) {
+        this.serviceTypeEnums = serviceTypeEnums;
+    }
+
     @Override
     public String toString() {
         return "PermissionDto{" +
-                "userName='" + userName + '\'' +
+                "id=" + id +
+                ", userName='" + userName + '\'' +
                 ", serviceTitle='" + serviceTitle + '\'' +
-                ", tps='" + tps + '\'' +
-                ", tpd='" + tpd + '\'' +
+                ", tps=" + tps +
+                ", tpd=" + tpd +
                 ", startDatePermission='" + startDatePermission + '\'' +
                 ", endDatePermission='" + endDatePermission + '\'' +
-                ", maxBind='" + maxBind + '\'' +
+                ", maxBind=" + maxBind +
                 ", serviceTimeOut='" + serviceTimeOut + '\'' +
-                ", userId='" + userId + '\'' +
-                ", serviceId='" + serviceId + '\'' +
+                ", userId=" + userId +
+                ", serviceId=" + serviceId +
+                // ", serviceTypeEnums=" + serviceTypeEnums +
                 '}';
     }
 }

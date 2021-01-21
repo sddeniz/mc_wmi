@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="/static/favicon.png" rel="shortcut icon"/>
+</head>
+<body>
+<form method="post" name="myRedirectForm" style="visibility: hidden" th:action="${model.url}">
+    <input name="ResNum" th:value="${model.resNum}" type="hidden"/>
+    <input name="TerminalId" th:value="${model.terminalId}" type="hidden"/>
+    <input name="RedirectURL" th:value="${model.redirectURL}" type="hidden"/>
+    <input name="Bills[0].BillId" th:value="${model.bill.BillId}" type="hidden"/>
+    <input name="Bills[0].PayId" th:value="${model.bill.PayId}" type="hidden"/>
+    <noscript>
+        <input type="submit"/>
+    </noscript>
+</form>
+<script src="/static/js/jquery-3.4.1.slim.min.js" type="application/javascript"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        document.myRedirectForm.submit();
+    });
+
+</script>
+</body>
+<script></script>
+</html>

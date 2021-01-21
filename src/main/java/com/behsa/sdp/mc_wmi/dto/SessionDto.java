@@ -1,28 +1,40 @@
 package com.behsa.sdp.mc_wmi.dto;
 
+import com.behsa.sdp.mc_wmi.enums.ServiceTypeEnums;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * ساخت دیفر ( منتظر پاسخ از سیستم میباشد )
  */
 public class SessionDto {
-    private DeferredResult<ResponseEntity<?>> deferredResult;
+    private DeferredResult<ResponseEntity<?>> RestDeferredResult;
     private String version;
     private String serviceName;
+    private ServiceTypeEnums serviceType;
+    private DeferredResult<ModelAndView> webDeferredResult;
 
-    public SessionDto(DeferredResult<ResponseEntity<?>> deferredResult, String serviceName, String version) {
-        this.deferredResult = deferredResult;
-        this.serviceName = serviceName;
+//    public SessionDto(DeferredResult<ResponseEntity<?>> deferredResult, String serviceName, String version) {
+//        this.deferredResult = deferredResult;
+//        this.serviceName = serviceName;
+//        this.version = version;
+//    }
+
+    public SessionDto(DeferredResult<ResponseEntity<?>> RestDeferredResult, DeferredResult<ModelAndView> webDeferredResult, String serviceName, String version, ServiceTypeEnums serviceType) {
+        this.RestDeferredResult = RestDeferredResult;
         this.version = version;
+        this.serviceName = serviceName;
+        this.serviceType = serviceType;
+        this.webDeferredResult=webDeferredResult;
     }
 
-    public DeferredResult<ResponseEntity<?>> getDeferredResult() {
-        return deferredResult;
+    public DeferredResult<ResponseEntity<?>> getRestDeferredResult() {
+        return RestDeferredResult;
     }
 
-    public void setDeferredResult(DeferredResult<ResponseEntity<?>> deferredResult) {
-        this.deferredResult = deferredResult;
+    public void setRestDeferredResult(DeferredResult<ResponseEntity<?>> restDeferredResult) {
+        this.RestDeferredResult = restDeferredResult;
     }
 
     public String getVersion() {
@@ -39,5 +51,21 @@ public class SessionDto {
 
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
+    }
+
+    public ServiceTypeEnums getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(ServiceTypeEnums serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public DeferredResult<ModelAndView> getWebDeferredResult() {
+        return webDeferredResult;
+    }
+
+    public void setWebDeferredResult(DeferredResult<ModelAndView> webDeferredResult) {
+        this.webDeferredResult = webDeferredResult;
     }
 }

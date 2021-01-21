@@ -2,10 +2,12 @@ package com.behsa.sdp.mc_wmi.controller;
 
 import com.behsa.sdp.mc_wmi.common.*;
 import com.behsa.sdp.mc_wmi.dto.*;
+import com.behsa.sdp.mc_wmi.enums.ErrorApiGw;
 import com.behsa.sdp.mc_wmi.enums.EventTypeEnums;
 import com.behsa.sdp.mc_wmi.enums.ServiceTypeEnums;
 import com.behsa.sdp.mc_wmi.log.APILogger;
 import com.behsa.sdp.mc_wmi.repository.RestApiRepository;
+import com.behsa.sdp.mc_wmi.repository.WebViewModel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -23,20 +25,24 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.servlet.ModelAndView;
 import sdpMsSdk.SdpHelper;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 
 @RestController
-public class RestApiController {
+public class ApiGwRequestController {
 
-    private static final String MICROSERVICE_NAME = "ms_rest";
-    private static final String TRIGGER_SYNC_SERVICE = "ms_rest";
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(RestApiRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiGwRequestController.class);
+    private final String errorTemplatePage = "templateError";
 
 
     @Autowired
@@ -46,6 +52,9 @@ public class RestApiController {
 
     @Autowired
     private SessionManager sessionManager;
+
+    @Autowired
+    private SessionWebViewManager sessionWSessionManager;
 
     @Autowired
     private Gson gson;
@@ -82,10 +91,11 @@ public class RestApiController {
 
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, value = "/api/call/{serviceName}")
     public @ResponseBody
-    DeferredResult<ResponseEntity<?>> triggerSync(@PathVariable("serviceName") String serviceName,
-                                                  @RequestParam("ver") String version,
-                                                  @RequestBody(required = false) JSONObject payload,
-                                                  HttpServletRequest request) {
+    DeferredResult<ResponseEntity<?>>
+    triggerSync(@PathVariable("serviceName") String serviceName,
+                @RequestParam("ver") String version,
+                @RequestBody(required = false) JSONObject payload,
+                HttpServletRequest request) {
 
         long startTime = new Date().getTime();
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
@@ -119,10 +129,6 @@ public class RestApiController {
                 cacheTreeGw.setHashMap(serviceName, treeInfoDto);
             }
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            UserDetails principal = (UserDetails) authentication.getPrincipal();
-            principal.getUsername();
-
             boolean haveTree = validationInputService.isHaveTree(treeInfoDto);
             if (!haveTree) {
                 ResponseEntity<JSONObject> response = errorResponse("Service is wrong or is not Active", trackCode, HttpStatus.NOT_FOUND);
@@ -140,10 +146,12 @@ public class RestApiController {
                 return output;
             }
 
+
             payloadConfig(mapPayLoad, treeInfoDto.getTreeId(), serviceName,
                     version, host, request.getServerPort(), payload);
 
-            sessionManager.setSession(trackCode, new SessionDto(output, serviceName, version));
+
+            sessionManager.setSession(trackCode, new SessionDto(output, null, serviceName, version, ServiceTypeEnums.rest));
             LOGGER.debug("track code:{} , instanceKey:{} , mapPayLoad:{} , channel name:sdp_api and serviceName api_request "
                     , trackCode, serviceUtils.getServiceInstanceKey(), mapPayLoad);
 
@@ -151,6 +159,7 @@ public class RestApiController {
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
+            System.out.println(serviceUtils.getServiceInstanceKey());
             LOGGER.debug("send Success************************************************* ");
 
             this.apiLogger.insert(serviceName,
@@ -180,6 +189,110 @@ public class RestApiController {
 
     }
 
+
+    //---------------------------
+
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, value = "/web/call/{serviceName}")
+    public @ResponseBody
+    DeferredResult<ModelAndView>
+    webViewApiGw(@PathVariable("serviceName") String serviceName,
+                 @RequestParam("ver") String version,
+                 @RequestBody(required = false) JSONObject payload,
+                 HttpServletRequest request) {
+
+
+        long startTime = new Date().getTime();
+        DeferredResult<ModelAndView> output = new DeferredResult<>();
+        String trackCode = String.valueOf(UUID.randomUUID());
+        try {
+            if (checkVersion(version)) {
+                LOGGER.debug("version is null or empty  , payload:{}  ,   trackCode:{}", payload, trackCode);
+                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.versionWeb.getValue())));
+                return output;
+            }
+            String host = request.getServerName().trim();
+            LOGGER.info("------------------- > host is :{}", host);
+
+            if (validationBilling(serviceName)) {
+                LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
+                        , payload, serviceName, trackCode);
+                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.billingWeb.getValue())));
+                return output;
+            }
+
+            TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);//todo mojtaba
+
+            TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.rest.getCode(), version, host);//type make enum ,
+            TreeInfoDto treeInfoDto = restApiRepository.getTreeId(treeGwDto);
+
+            if (infoDtoCache == null) {
+                cacheTreeGw.setHashMap(serviceName, treeInfoDto);
+            }
+
+            boolean haveTree = validationInputService.isHaveTree(treeInfoDto);
+            if (!haveTree) {
+                String response = "<html><body><h1>Erorr,Service is wrong or is not Active !</h1></body></html>";//todo clean
+                LOGGER.debug("Service is wrong , payload:{}  , treeInfoDto:{}  , trackCode:{}", payload, treeInfoDto, trackCode);
+                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.serviceWeb.getValue())));
+                return output;
+            }
+
+            JSONObject mapPayLoad = mapPayLoad(treeInfoDto, payload);
+            if (mapPayLoad.isEmpty()) {
+                String response = "<html><body><h1>Erorr,Input service Fields are wrong !</h1></body></html>";//todo clean
+                LOGGER.debug("can not mach input and tree Info , payload:{}  , treeInfoDto:{}  , trackCode:{}"
+                        , payload, treeInfoDto.toString(), trackCode);
+                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.inputWeb.getValue())));
+                return output;
+            }
+
+
+            payloadConfig(mapPayLoad, treeInfoDto.getTreeId(), serviceName,
+                    version, host, request.getServerPort(), payload);
+
+            sessionWSessionManager.setSessionMap(trackCode, new SessionWebViewDto(output, serviceName, version, ServiceTypeEnums.web));
+
+            LOGGER.debug("track code:{} , instanceKey:{} , mapPayLoad:{} , channel name:sdp_api and serviceName api_request "
+                    , trackCode, serviceUtils.getServiceInstanceKey(), mapPayLoad);
+
+            sdpHelper.sendStartProcess("sdp_api",
+                    serviceName,
+                    serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
+
+            LOGGER.info(serviceUtils.getServiceInstanceKey());
+            LOGGER.debug("send Success************************************************* ");
+
+            this.apiLogger.insert(serviceName,
+                    trackCode,
+                    EventTypeEnums.sendToWorker.getValue(),
+                    "Trace",
+                    version,
+                    serviceName,
+                    "",
+                    " _ ",
+                    "", "", "true",
+                    String.valueOf(new Date().getTime() - startTime), null, null);
+        } catch (Exception e) {
+            LOGGER.debug("triggerSync: ", e);
+            this.apiLogger.insert(serviceName,
+                    trackCode,
+                    EventTypeEnums.sendToWorker.getValue(),
+                    "Trace",
+                    version,
+                    serviceName,
+                    "",
+                    " _ ",
+                    "", "", "true",
+                    String.valueOf(new Date().getTime() - startTime), "90009", e.getMessage());
+        }
+        return output;
+
+    }
+
+
+    //---------------------------
+
     private boolean checkVersion(String version) {
         return StringUtils.isEmpty(version);
     }
@@ -197,6 +310,13 @@ public class RestApiController {
     private void payloadConfig(JSONObject jsonObjectConfigure, long treeId,
                                String serviceName, String version,
                                String host, int port, JSONObject userParamReq) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails principal = (UserDetails) authentication.getPrincipal();
+        String usernameApiGw = principal.getUsername();
+        userParamReq.put("api_userName", usernameApiGw);
+
+
         jsonObjectConfigure.put("api_TreeId", String.valueOf(treeId));
         jsonObjectConfigure.put("api_serviceName", serviceName);
         jsonObjectConfigure.put("api_version", String.valueOf(version));
@@ -272,6 +392,30 @@ public class RestApiController {
         return checkBilling.billingCheck(serviceName);
     }
 
+
+    public void cacheMatchTopUp(String urls) throws IOException {
+        // TODO: 1/16/2021 check this
+        URL url = new URL(urls);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Failed : HTTP error code : "
+                    + conn.getResponseCode());
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+                (conn.getInputStream())));
+
+        String output;
+        System.out.println("Output from Server .... \n");
+        while ((output = br.readLine()) != null) {
+            System.out.println(output);
+        }
+
+
+    }
+
     //--------------------------------
     @PostMapping(value = "/api/response/{trackCode}")
     public @ResponseBody
@@ -280,10 +424,10 @@ public class RestApiController {
                                                    @RequestBody JSONObject payload,
                                                    HttpServletRequest request) throws Exception {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
-         SessionDto session = sessionManager.getSession(trackCode);
-        session.setDeferredResult(output);
+        SessionDto session = sessionManager.getSession(trackCode);
+        session.setRestDeferredResult(output);
         sdpHelper.sendResponse(payload, trackCode);
-         return output;
+        return output;
     }
 
     @PostMapping(value = "/trigger/{channelName}/{triggerName}")

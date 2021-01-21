@@ -5,6 +5,7 @@ import com.behsa.sdp.mc_wmi.dto.MaxBind;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.dto.TreeGwDto;
 import com.behsa.sdp.mc_wmi.dto.TreeInfoDto;
+import com.behsa.sdp.mc_wmi.enums.ServiceTypeEnums;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import common.CoreException;
@@ -95,7 +96,8 @@ public class RestApiRepository {
             ResultSet resultSet = preparedStatement.executeQuery();
             Map<String, PermissionDto> permissionMap = new HashMap<>();
             while (resultSet.next()) {
-                permissionMap.put(resultSet.getString("serviceTitle"), new PermissionDto
+
+                permissionMap.put(ServiceTypeEnums.getEnum(resultSet.getInt("apitype")).getValue() + resultSet.getString("serviceTitle"), new PermissionDto
                         (
                                 resultSet.getLong("id"),
                                 resultSet.getString("username"),
@@ -107,7 +109,8 @@ public class RestApiRepository {
                                 gson.fromJson(resultSet.getString("maxbind"), maxBindType),
                                 resultSet.getString("servicetimeout"),
                                 resultSet.getLong("userId"),
-                                resultSet.getLong("serviceid")
+                                resultSet.getLong("serviceid"),
+                                ServiceTypeEnums.getEnum(resultSet.getInt("apitype"))
                         ));
             }
             return permissionMap;

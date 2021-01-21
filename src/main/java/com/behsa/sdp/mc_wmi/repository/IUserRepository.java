@@ -19,5 +19,7 @@ public interface IUserRepository extends JpaRepository<UserModel, Long> {
     //@Query("select u from tbl_users_api u where u.username =:username")
     UserModel findByUserName(String username);
 
+    UserModel findUserModelByUserNameAndPasswords(String userName, String password);
+
     UserModel findAllByCreateDate(DATE date);
 }

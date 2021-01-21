@@ -25,7 +25,7 @@ public class SdpResponseHandler implements ISdpHandlerAsync {
             JSONObject res = new JSONObject();
             SessionDto session = sessionManager.getSession(s);
             ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(res, HttpStatus.OK);
-            session.getDeferredResult().setResult(jsonObjectResponseEntity);
+            session.getRestDeferredResult().setResult(jsonObjectResponseEntity);
             sessionManager.removeSession(s);
         } catch (Exception e) {
             e.printStackTrace();

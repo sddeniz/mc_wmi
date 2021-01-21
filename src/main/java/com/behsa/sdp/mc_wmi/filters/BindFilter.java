@@ -1,6 +1,7 @@
 package com.behsa.sdp.mc_wmi.filters;
 
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
+import com.behsa.sdp.mc_wmi.common.ServiceUtils;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import com.behsa.sdp.mc_wmi.redis.CoreRedis;
 import com.behsa.sdp.mc_wmi.repository.HeaderKey;
@@ -45,10 +46,14 @@ public class BindFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        String serviceName = request.getRequestURI().replace("/api/call/", "");
+
+        String serviceName = ServiceUtils.findServiceNameAndType(request);
+
         String requestIp = request.getRemoteAddr().trim();
         String rateBindKey = serviceName + "." + authentication.getPrincipal().getUsername() + "." + requestIp;
         PermissionDto permissionDto = authentication.getPermissions().get(serviceName);
+
+
         if (permissionDto == null) {
             SecurityContextHolder.getContext().setAuthentication(null);
             filterChain.doFilter(request, response);
