@@ -2,6 +2,7 @@ package com.behsa.sdp.mc_wmi.filters;
 
 import com.behsa.sdp.mc_wmi.common.DsdpAuthentication;
 import com.behsa.sdp.mc_wmi.common.RateLimitService;
+import com.behsa.sdp.mc_wmi.common.ServiceUtils;
 import com.behsa.sdp.mc_wmi.dto.PermissionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +30,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (!(authentication instanceof DsdpAuthentication)) {
             return true;
         }
-        String pathVariables = request.getRequestURI();
-        String serviceName = pathVariables.replace("/api/call/", "");
-
+        String serviceName = ServiceUtils.findServiceNameAndType(request);
         if (serviceName.isEmpty()) {
             logger.error("FORBIDDEN");
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN");

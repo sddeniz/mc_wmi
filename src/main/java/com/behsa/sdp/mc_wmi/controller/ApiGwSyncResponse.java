@@ -1,4 +1,4 @@
-package com.behsa.sdp.mc_wmi.service;
+package com.behsa.sdp.mc_wmi.controller;
 
 import Enums.ActionFieldValueType;
 import com.behsa.sdp.mc_wmi.common.CacheRestAPI;
