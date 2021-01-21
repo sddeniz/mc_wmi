@@ -54,9 +54,6 @@ public class ApiGwRequestController {
     private SessionManager sessionManager;
 
     @Autowired
-    private SessionWebViewManager sessionWSessionManager;
-
-    @Autowired
     private Gson gson;
 
     @Autowired
@@ -251,8 +248,7 @@ public class ApiGwRequestController {
             payloadConfig(mapPayLoad, treeInfoDto.getTreeId(), serviceName,
                     version, host, request.getServerPort(), payload);
 
-            sessionWSessionManager.setSessionMap(trackCode, new SessionWebViewDto(output, serviceName, version, ServiceTypeEnums.web));
-
+            sessionManager.setSession(trackCode, new SessionDto(null, output, serviceName, version, ServiceTypeEnums.web));
             LOGGER.debug("track code:{} , instanceKey:{} , mapPayLoad:{} , channel name:sdp_api and serviceName api_request "
                     , trackCode, serviceUtils.getServiceInstanceKey(), mapPayLoad);
 
