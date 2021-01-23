@@ -5,11 +5,20 @@
     <link href="/static/css/bootstrap-rtl.min.css" rel="stylesheet" type="text/css"/>
     <link href="/static/css/app.css?date=139809231038" rel="stylesheet" type="text/css"/>
     <b class="text_black" th:text="${view.header}"></b>
-    <title>"${view.title}"</title>
+
+    <title>
+        <b class="text_black" th:text="${view.title}"></b>
+    </title>
 </head>
 <body>
 <div class="row">
+
     <b class="text_black" th:text="${view.body}"></b>
+
 </div>
 </body>
+
+<footer>
+    <b class="text_black" th:text="${view.footer}"></b>
+</footer>
 </html>

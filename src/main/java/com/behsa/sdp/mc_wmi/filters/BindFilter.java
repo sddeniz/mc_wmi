@@ -46,8 +46,7 @@ public class BindFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
-
-        String serviceName = ServiceUtils.findServiceNameAndType(request);
+         String serviceName = ServiceUtils.findServiceNameAndType(request);
 
         String requestIp = request.getRemoteAddr().trim();
         String rateBindKey = serviceName + "." + authentication.getPrincipal().getUsername() + "." + requestIp;

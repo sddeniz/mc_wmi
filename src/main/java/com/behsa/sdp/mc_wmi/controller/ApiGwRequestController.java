@@ -220,7 +220,7 @@ public class ApiGwRequestController {
 
             TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);//todo mojtaba
 
-            TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.rest.getCode(), version, host);//type make enum ,
+            TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.web.getCode(), version, host);//type make enum ,
             TreeInfoDto treeInfoDto = restApiRepository.getTreeId(treeGwDto);
 
             if (infoDtoCache == null) {

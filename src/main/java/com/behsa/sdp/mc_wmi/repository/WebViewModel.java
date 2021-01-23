@@ -1,14 +1,33 @@
 package com.behsa.sdp.mc_wmi.repository;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 public class WebViewModel implements Serializable {
 
+    @SerializedName("body")
     private String body;
+    @SerializedName("title")
     private String title;
+    @SerializedName("header")
     private String header;
+    @SerializedName("footer")
     private String footer;
+    @SerializedName("file")
     private String file;
+
+
+    public WebViewModel() {
+    }
+
+    public WebViewModel(String body, String title, String header, String footer, String file) {
+        this.body = body;
+        this.title = title;
+        this.header = header;
+        this.footer = footer;
+        this.file = file;
+    }
 
     public String getTitle() {
         return title;

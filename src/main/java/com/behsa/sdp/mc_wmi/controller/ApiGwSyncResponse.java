@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.internal.LinkedTreeMap;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,11 +131,10 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
             return apiJsonObjWrapper;
         }
 
-
         for (ApiOutputDto output : outPutDto) {
             if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
                 break;
-            } else if (output.getType().equals(String.valueOf(ActionFieldValueType.Html)) && output.getExpose().equals("true")) {
+            } else if (output.getType().equals(String.valueOf(ActionFieldValueType.Object)) && output.getExpose().equals("true")) {
                 apiJsonObjWrapper = jsonObject;
             } else if (output.getExpose().equals("true")) {
                 apiJsonObjWrapper.put(output.getTitle(), jsonObject.get(output.getName()));
@@ -147,9 +147,44 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
 
     //   -----------------
 
-    private WebViewModel wrapperOutPutWebView(String serviceName) throws JsonProcessingException {
+    private WebViewModel wrapperOutPutWebView(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
-        return objectMapper.readValue(treeInfoDto.getOutputs(), WebViewModel.class);
+        ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
+        WebViewModel webViewModel = new WebViewModel();
+        if (outPutDto == null || outPutDto.length == 0) {
+            return webViewModel;
+        }
+
+        for (ApiOutputDto output : outPutDto) {
+            if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
+                break;
+            } else if (output.getExpose().equals("true")) {
+                Object data = jsonObject.get(output.getName());
+                String value = (String) ((LinkedTreeMap) data).get(output.getTitle());
+                setModelProperty(webViewModel, output.getTitle(), value);
+            } else {
+                setModelProperty(webViewModel, output.getTitle(), output.getDefaultValue());
+            }
+        }
+        return webViewModel;//apiJsonObjWrapper;
+
+    }
+
+    private void setModelProperty(WebViewModel webViewModel, String output, String value) {
+        switch (output) {
+            case "header":
+                webViewModel.setHeader(value);
+                break;
+            case "body":
+                webViewModel.setBody(value);
+                break;
+            case "footer":
+                webViewModel.setFooter(value);
+                break;
+            case "file":
+                webViewModel.setFile(value);
+                break;
+        }
 
     }
 
@@ -168,7 +203,7 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
     }
 
     private void responseWeb(String trackCode, SessionDto session, JSONObject jsonObject) throws JsonProcessingException {
-        WebViewModel responseAfterWrap = wrapperOutPutWebView(session.getServiceName());
+        WebViewModel responseAfterWrap = wrapperOutPutWebView(session.getServiceName(), jsonObject);
         session.getWebDeferredResult().setResult(new ModelAndView("templateResponseApi", "view",responseAfterWrap));
         sessionManager.removeSession(trackCode);
     }
