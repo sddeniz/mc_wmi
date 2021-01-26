@@ -16,6 +16,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
@@ -26,8 +28,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);//"Authorization"
-        final String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);//"Authorization"
+        final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
+        final String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);
         if (authToken == null && serviceToken == null) {
             LOGGER.warn("Token does not Authorization Header");
             chain.doFilter(request, response);
@@ -36,10 +38,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         DsdpAuthentication authentication;
         if (authToken != null) {
             authentication = this.coreRedis.getAuthentication(authToken);
-        } else if (serviceToken != null) {
-            authentication = this.coreRedis.getAuthenticationServiceToken(serviceToken);
         } else {
-            authentication = null;
+            authentication = this.coreRedis.getAuthenticationServiceToken(serviceToken);
         }
         if (authentication == null) {
             LOGGER.warn("Authentication not found for token {}", authToken);

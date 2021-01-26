@@ -76,8 +76,8 @@ public class AppConfig {
         hikariConfig.setMaximumPoolSize(hikariMaxPollSize);
         hikariConfig.setUsername(dbUserName);
         hikariConfig.setPassword(dbPassword);
-        Long leakDetectionThreshold = hikariLeakDetectionThreshold;
-        hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
+
+        hikariConfig.setLeakDetectionThreshold(hikariLeakDetectionThreshold);
         hikariConfig.setMaxLifetime(this.hikariMaxLifeTime);
         hikariConfig.setJdbcUrl("jdbc:oracle:thin:@" + dbHost + ":" + dbPort + "/" + dbServiceName);
         hikariConfig.setDriverClassName("oracle.jdbc.OracleDriver");
