@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Main-Class: com.behsa.sdp.mc_wmi.McWmiApplication
+Main-Class: com.behsa.sdp.mcwmi.McWmiApplication
 Class-Path: spring-web-5.2.0.RELEASE.jar spring-orm-5.2.0.RELEASE.jar gu
  ava-29.0-jre.jar jedis-3.1.0.jar spring-aspects-5.2.0.RELEASE.jar istac
  k-commons-runtime-3.0.8.jar gson-2.8.5.jar spring-data-jpa-2.2.0.RELEAS
