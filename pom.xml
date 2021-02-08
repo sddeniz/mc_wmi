@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.behsa.sdp</groupId>
-    <artifactId>mc_wmi</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>mc_wmi</name>
+    <artifactId>Edge</artifactId>
+    <version>1.0.0</version>
+    <name>Edge</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>
