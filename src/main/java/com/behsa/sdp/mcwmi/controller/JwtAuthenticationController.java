@@ -10,6 +10,7 @@ import com.behsa.sdp.mcwmi.repository.HeaderKey;
 import com.behsa.sdp.mcwmi.repository.JwtRequest;
 import com.behsa.sdp.mcwmi.repository.JwtResponse;
 import com.behsa.sdp.mcwmi.repository.SaltTokenResponse;
+import common.EncryptUtil;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class JwtAuthenticationController {
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
 //      coreRedis.cleanRedis();
+
         try {
             final DsdpUser userDetails = userDetailsService.checkAndLoadUser(authenticationRequest.getUsername(), EncryptUtil.encrypt(authenticationRequest.getPassword()));
             DsdpAuthentication authentication = new DsdpAuthentication(userDetails, null, userDetails.getPermissions(), Collections.emptyList());

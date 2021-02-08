@@ -49,6 +49,8 @@ public class BindFilter extends OncePerRequestFilter {
         String serviceName = ServiceUtils.findServiceNameAndType(request);
 
         String requestIp = request.getRemoteAddr().trim();
+
+
         String rateBindKey = serviceName + "." + authentication.getPrincipal().getUsername() + "." + requestIp;
         PermissionDto permissionDto = authentication.getPermissions().get(serviceName);
 
