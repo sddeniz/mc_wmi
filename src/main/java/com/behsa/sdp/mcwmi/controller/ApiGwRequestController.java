@@ -79,13 +79,6 @@ public class ApiGwRequestController {
         objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
     }
 
-
-    @RequestMapping(method = {RequestMethod.POST/*, RequestMethod.GET*/}, value = "/havij")
-    public void test1(@RequestBody(required = false) JSONObject jsonObject) {
-        System.out.println("got it");
-    }
-
-
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, value = "/api/call/{serviceName}")
     public @ResponseBody
     DeferredResult<ResponseEntity<?>>
@@ -105,9 +98,7 @@ public class ApiGwRequestController {
                 return output;
             }
             String host = request.getServerName().trim();
-            LOGGER.info("------------------- > host is :{}", host);
-
-
+            LOGGER.info("------------------- > host:{} , ip:{}", host, request.getRemoteAddr());
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
@@ -115,9 +106,7 @@ public class ApiGwRequestController {
                 output.setResult(response);
                 return output;
             }
-
             //todo validationInputService();
-
             TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);//todo mojtaba
 
             TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.rest.getCode(), version, host);//type make enum ,
@@ -171,7 +160,9 @@ public class ApiGwRequestController {
                     "", "", "true",
                     String.valueOf(new Date().getTime() - startTime), null, null);
         } catch (Exception e) {
-            LOGGER.debug("triggerSync: ", e);
+            LOGGER.error(" exception in Edge Req call,serviceName:{} , version:{} , request:{} ",
+                    serviceName, version, request, e);
+
             this.apiLogger.insert(serviceName,
                     trackCode,
                     EventTypeEnums.sendToWorker.getValue(),
@@ -210,7 +201,7 @@ public class ApiGwRequestController {
                 return output;
             }
             String host = request.getServerName().trim();
-            LOGGER.info("------------------- > host is :{}", host);
+            LOGGER.info("------------------- > host is :{} , ip:{}", host, request.getRemoteAddr());
 
             if (validationBilling(serviceName)) {
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
@@ -238,7 +229,6 @@ public class ApiGwRequestController {
 
             JSONObject mapPayLoad = mapPayLoad(treeInfoDto, payload);
             if (mapPayLoad.isEmpty()) {
-                String response = "<html><body><h1>Erorr,Input service Fields are wrong !</h1></body></html>";//todo clean
                 LOGGER.debug("can not mach input and tree Info , payload:{}  , treeInfoDto:{}  , trackCode:{}"
                         , payload, treeInfoDto.toString(), trackCode);
                 output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.inputWeb.getValue())));
@@ -271,7 +261,8 @@ public class ApiGwRequestController {
                     "", "", "true",
                     String.valueOf(new Date().getTime() - startTime), null, null);
         } catch (Exception e) {
-            LOGGER.debug("triggerSync: ", e);
+            LOGGER.error(" exception in Edge Req web,serviceName:{} , version:{} , request:{} ",
+                    serviceName, version, request, e);
             this.apiLogger.insert(serviceName,
                     trackCode,
                     EventTypeEnums.sendToWorker.getValue(),
@@ -311,6 +302,9 @@ public class ApiGwRequestController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails principal = (UserDetails) authentication.getPrincipal();
         String usernameApiGw = principal.getUsername();
+        if (userParamReq == null)
+            userParamReq = new JSONObject();
+
         userParamReq.put("api_userName", usernameApiGw);
 
 
@@ -405,9 +399,9 @@ public class ApiGwRequestController {
                 (conn.getInputStream())));
 
         String output;
-        System.out.println("Output from Server .... \n");
+        LOGGER.info("Output from Server .... \n");
         while ((output = br.readLine()) != null) {
-            System.out.println(output);
+            LOGGER.info(output);
         }
 
 
