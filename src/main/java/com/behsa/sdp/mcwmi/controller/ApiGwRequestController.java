@@ -247,8 +247,7 @@ public class ApiGwRequestController {
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
-            LOGGER.info(serviceUtils.getServiceInstanceKey());
-            LOGGER.debug("send Success************************************************* ");
+            LOGGER.info("***************** send Success , instanceKey:{} ***************** " ,serviceUtils.getServiceInstanceKey() );
 
             this.apiLogger.insert(serviceName,
                     trackCode,

@@ -35,7 +35,7 @@ public class JwtAuthenticationController {
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
-//      coreRedis.cleanRedis();
+//     coreRedis.cleanRedis();
 
         try {
             final DsdpUser userDetails = userDetailsService.checkAndLoadUser(authenticationRequest.getUsername(), EncryptUtil.encrypt(authenticationRequest.getPassword()));
