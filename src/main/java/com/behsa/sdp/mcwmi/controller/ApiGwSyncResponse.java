@@ -124,13 +124,14 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
      * @throws JsonProcessingException
      */
     private JSONObject wrapperOutPut(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
-        TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this
+        TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this.
+        LOGGER.debug("----------------------- Response tree:{} ", jsonObject.toJSONString());
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
         JSONObject apiJsonObjWrapper = new JSONObject();
         if (outPutDto == null || outPutDto.length == 0) {
+            LOGGER.warn("----------------------- Response After Maping ApiOutputDto is null or empty ");
             return apiJsonObjWrapper;
         }
-
         for (ApiOutputDto output : outPutDto) {
             if (output.getExpose() == null || (output.getExpose().equals("false") && output.getDefaultValue().isEmpty())) {
                 break;
@@ -142,9 +143,9 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
                 apiJsonObjWrapper.put(output.getTitle(), output.getDefaultValue());
             }
         }
+        LOGGER.debug("----------------------- wrapper for response to user,Obj:{} ", apiJsonObjWrapper);
         return apiJsonObjWrapper;
     }
-
     //   -----------------
 
     private WebViewModel wrapperOutPutWebView(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
@@ -189,14 +190,11 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
     }
 
     private void responseRest(String trackCode, SessionDto session, JSONObject jsonObject) throws JsonProcessingException {
-
         JSONObject responseAfterWrap = wrapperOutPut(session.getServiceName(), jsonObject);
         ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(responseAfterWrap, HttpStatus.OK);
-
         responseAfterWrap.put("ApiGw_Code", trackCode);
         responseAfterWrap.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
         responseAfterWrap.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
-
         session.getRestDeferredResult().setResult(jsonObjectResponseEntity);
         sessionManager.removeSession(trackCode);
         LOGGER.debug("response to trackCode:{}  , status:{}", trackCode, jsonObjectResponseEntity.getStatusCode());

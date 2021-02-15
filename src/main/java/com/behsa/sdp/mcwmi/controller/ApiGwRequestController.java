@@ -99,6 +99,7 @@ public class ApiGwRequestController {
             }
             String host = request.getServerName().trim();
             LOGGER.info("------------------- > host:{} , ip:{}", host, request.getRemoteAddr());
+
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
@@ -146,9 +147,7 @@ public class ApiGwRequestController {
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
-            System.out.println(serviceUtils.getServiceInstanceKey());
             LOGGER.debug("send Success************************************************* ");
-
             this.apiLogger.insert(serviceName,
                     trackCode,
                     EventTypeEnums.sendToWorker.getValue(),
@@ -305,8 +304,7 @@ public class ApiGwRequestController {
             userParamReq = new JSONObject();
 
         userParamReq.put("api_userName", usernameApiGw);
-
-
+        jsonObjectConfigure.put("apiAuthUsername", usernameApiGw);
         jsonObjectConfigure.put("api_TreeId", String.valueOf(treeId));
         jsonObjectConfigure.put("api_serviceName", serviceName);
         jsonObjectConfigure.put("api_version", String.valueOf(version));

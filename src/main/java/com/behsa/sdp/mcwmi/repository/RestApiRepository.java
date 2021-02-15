@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 public class RestApiRepository {
@@ -120,6 +121,58 @@ public class RestApiRepository {
             LOGGER.error("Exception ", e);
         }
         return null;//todo clean this
+    }
+
+    public Map<String, Map<String, PermissionDto>> getAllPermissions(List<UserModel> userModels) {
+        Map<String, Map<String, PermissionDto>> userPermission = new ConcurrentHashMap<>();
+
+        for (UserModel userModel : userModels) {
+            userPermission.put(userModel.getUserName(), new HashMap<>());
+        }
+
+        try (Connection connection = connectionProvider.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "select * from vw_userPermission pr ")) {
+
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String key = ServiceTypeEnums.getEnum(resultSet.getInt("apitype")).getValue() + resultSet.getString("serviceTitle");
+                if (userPermission.get(resultSet.getString("username")) == null) {
+                    Map<String, PermissionDto> permissionMap = new HashMap<>();
+                    permissionMap.put(key, configurationPermissionDto(resultSet));
+                    userPermission.put(resultSet.getString("username"), permissionMap);
+                } else {
+                    Map<String, PermissionDto> permissionMap = userPermission.get(resultSet.getString("username"));
+                    permissionMap.put(key, configurationPermissionDto(resultSet));
+                    userPermission.put(resultSet.getString("username"), permissionMap);
+                }
+            }
+            return userPermission;
+        } catch (SQLException throwables) {
+            LOGGER.error("SQL Error For Find Tree ", throwables);
+        } catch (Exception e) {
+            LOGGER.error("Exception ", e);
+        }
+        return null;//todo clean this
+    }
+
+    private PermissionDto configurationPermissionDto(ResultSet resultSet) throws SQLException {
+        return new PermissionDto
+                (
+                        resultSet.getLong("id"),
+                        resultSet.getString("username"),
+                        resultSet.getString("serviceTitle"),
+                        resultSet.getLong("tps"),
+                        resultSet.getLong("tpd"),
+                        resultSet.getString("startdate"),
+                        resultSet.getString("enddate"),
+                        gson.fromJson(resultSet.getString("maxbind"), maxBindType),
+                        resultSet.getString("servicetimeout"),
+                        resultSet.getLong("userId"),
+                        resultSet.getLong("serviceid"),
+                        ServiceTypeEnums.getEnum(resultSet.getInt("apitype"))
+                );
     }
 
 

@@ -79,7 +79,6 @@ public class AppConfig {
 
         hikariConfig.setLeakDetectionThreshold(hikariLeakDetectionThreshold);
         hikariConfig.setMaxLifetime(this.hikariMaxLifeTime);
-        System.out.println("*****************************"+  dbHost + ":" + dbPort );
         hikariConfig.setJdbcUrl("jdbc:oracle:thin:@" + dbHost + ":" + dbPort + "/" + dbServiceName);
         hikariConfig.setDriverClassName("oracle.jdbc.OracleDriver");
         hikariConfig.setIdleTimeout(hikariIdleTimeout);

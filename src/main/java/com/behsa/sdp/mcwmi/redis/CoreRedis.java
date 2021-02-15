@@ -1,6 +1,8 @@
 package com.behsa.sdp.mcwmi.redis;
 
 import com.behsa.sdp.mcwmi.common.DsdpAuthentication;
+import com.behsa.sdp.mcwmi.dto.PermissionDto;
+import com.behsa.sdp.mcwmi.dto.PermissionDtoList;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -173,5 +176,26 @@ public class CoreRedis {
         }
     }
 
+
+    public void setAllPermission(String key,   PermissionDtoList dbPermissions) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            jedis.setex(KEY_PREFIX_DSDP + key, 1000000, gson.toJson(dbPermissions));
+        } catch (JedisException e) {
+            LOGGER.error("setAuthentication with authentication:{} ", dbPermissions, e);
+        }
+    }
+
+    public PermissionDtoList getAllPermission(String key) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String str = jedis.get(KEY_PREFIX_DSDP + key);
+            if (str == null || str.isEmpty()) {
+                return null;
+            }
+            return this.gson.fromJson(str, PermissionDtoList.class);
+        } catch (JedisException e) {
+            LOGGER.error("getUsage with key:{} ", key, e);
+        }
+        return null;
+    }
 
 }

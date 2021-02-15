@@ -1,8 +1,10 @@
 package com.behsa.sdp.mcwmi.config;
 
+import com.behsa.sdp.mcwmi.redis.RedisUserDetailsService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import common.CoreException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +49,8 @@ public class BeanConfig {
     @Value("${sdp.log.exchange}")
     private String logExchange;
 
+    @Autowired
+    private   RedisUserDetailsService redisUserDetailsService;
 
     @Bean
     public SdpHelper getSdpHelper() {
@@ -88,5 +92,13 @@ public class BeanConfig {
         }
         return amqpHelper;
     }
+
+    @Bean
+    public void loadUserPermissions()
+    {
+        redisUserDetailsService.loadAllUserPermission();
+    }
+
+
 
 }
