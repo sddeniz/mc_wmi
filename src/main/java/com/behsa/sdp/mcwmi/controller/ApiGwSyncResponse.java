@@ -28,11 +28,10 @@ import sdpMsSdk.ISdpHandlerAsync;
 import javax.annotation.PostConstruct;
 import java.util.Date;
 
-//import models.SdpMsException;
 
 @Component
 public class ApiGwSyncResponse implements ISdpHandlerAsync {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ApiGwSyncResponse.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiGwSyncResponse.class);
 
     @Autowired
     private SessionManager sessionManager;
@@ -49,7 +48,6 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
     }
 
 
-
     @Override
     public void OnReceive(JSONObject jsonObject, String trackCode, JSONObject jsonObject1, String s1, long l, String s2) {
         long startTime = new Date().getTime();
@@ -57,35 +55,13 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
         try {
             session = this.sessionManager.getSession(trackCode);
             if (session == null) {
-                LOGGER.error("session is null, to trackCode:{}  , jsonIncome:{}", trackCode, jsonObject.toJSONString());
+                LOGGER.error("session is null, to trackCode:{}  , jsonIncome:{}", trackCode, jsonObject != null ? jsonObject.toJSONString() : null);
             } else {
                 if (session.getServiceType().equals(ServiceTypeEnums.rest)) {
                     responseRest(trackCode, session, jsonObject);
                 } else if (session.getServiceType().equals(ServiceTypeEnums.web)) {
                     responseWeb(trackCode, session, jsonObject);
                 }
-
-
-//            SessionWebViewDto sessionMap = sessionWebViewManager.getSessionMap(trackCode);
-//            String responseAfterWrap = wrapperOutPutWebView(sessionMap.getServiceName(), jsonObject);
-//
-//            String view = "paymentSuccess";
-//
-//
-//            sessionMap.getDeferredResult().setResult(new ModelAndView(view, "model", responseAfterWrap));
-//            sessionWebViewManager.removeSession(trackCode);
-//
-            /* session = sessionManager.getSession(trackCode);
-             JSONObject responseAfterWrap = wrapperOutPut(session.getServiceName(), jsonObject);
-            ResponseEntity<JSONObject> jsonObjectResponseEntity = new ResponseEntity<>(responseAfterWrap, HttpStatus.OK);
-
-            responseAfterWrap.put("ApiGw_Code", trackCode);
-            responseAfterWrap.put("httpStatus", jsonObjectResponseEntity.getStatusCode());
-            responseAfterWrap.put("httpStatusCode", jsonObjectResponseEntity.getStatusCodeValue());
-
-            session.getDeferredResult().setResult(jsonObjectResponseEntity);
-            sessionManager.removeSession(trackCode);
-            LOGGER.debug("response to trackCode:{}  , status:{}", trackCode, jsonObjectResponseEntity.getStatusCode());*/
 
                 this.apiLogger.insert(session.getServiceName(),
                         trackCode,
@@ -100,16 +76,24 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
             }
 
         } catch (Exception e) {
-            LOGGER.error("response to trackCode:{}  , jsonIncome:{}", trackCode, jsonObject.toJSONString());
+            String returnMessage = jsonObject != null ? jsonObject.toJSONString() : new JSONObject().toJSONString();
+            LOGGER.error("response to trackCode:{}  , jsonIncome:{}", trackCode, returnMessage);
+
+            String serviceName = null;
+            String serviceVersion = null;
+            if (session != null) {
+                serviceName = session.getServiceName();
+                serviceVersion = session.getVersion();
+            }
             this.apiLogger.insert(
-                    session != null ? session.getServiceName() : null,
+                    serviceName,
                     trackCode,
                     EventTypeEnums.getFromTree.getValue(),
                     "Trace",
-                    session != null ? session.getVersion() : null,
-                    session != null ? session.getServiceName() : null,
+                    serviceVersion,
+                    serviceName,
                     "",
-                    jsonObject.toJSONString(),
+                    returnMessage,
                     "", "", "true",
                     String.valueOf(new Date().getTime() - startTime), "90010", e.getMessage());
         }
@@ -125,7 +109,7 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
      */
     private JSONObject wrapperOutPut(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this.
-        LOGGER.debug("----------------------- Response tree:{} ", jsonObject.toJSONString());
+        LOGGER.debug("----------------------- Response tree:{} ", jsonObject != null ? jsonObject.toJSONString() : null);
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
         JSONObject apiJsonObjWrapper = new JSONObject();
         if (outPutDto == null || outPutDto.length == 0) {
@@ -167,7 +151,7 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
                 setModelProperty(webViewModel, output.getTitle(), output.getDefaultValue());
             }
         }
-        return webViewModel;//apiJsonObjWrapper;
+        return webViewModel;
 
     }
 
@@ -185,8 +169,10 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
             case "file":
                 webViewModel.setFile(value);
                 break;
+            default:
+                webViewModel.setBody(value);
+                break;
         }
-
     }
 
     private void responseRest(String trackCode, SessionDto session, JSONObject jsonObject) throws JsonProcessingException {
@@ -202,7 +188,7 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
 
     private void responseWeb(String trackCode, SessionDto session, JSONObject jsonObject) throws JsonProcessingException {
         WebViewModel responseAfterWrap = wrapperOutPutWebView(session.getServiceName(), jsonObject);
-        session.getWebDeferredResult().setResult(new ModelAndView("templateResponseApi", "view",responseAfterWrap));
+        session.getWebDeferredResult().setResult(new ModelAndView("templateResponseApi", "view", responseAfterWrap));
         sessionManager.removeSession(trackCode);
     }
 }

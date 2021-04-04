@@ -100,6 +100,8 @@ public class ApiGwRequestController {
             String host = request.getServerName().trim();
             LOGGER.info("------------------- > host:{} , ip:{}", host, request.getRemoteAddr());
 
+
+
             if (validationBilling(serviceName)) {
                 ResponseEntity<JSONObject> response = errorResponse("Billing lock your Account", trackCode, HttpStatus.LOCKED);
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"

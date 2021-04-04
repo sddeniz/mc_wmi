@@ -8,7 +8,8 @@ import com.behsa.sdp.mcwmi.repository.HeaderKey;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,10 +25,15 @@ import java.io.IOException;
 
 @Component
 public class BindFilter extends OncePerRequestFilter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BindFilter.class);
+
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    @Autowired
-    private CoreRedis coreRedis;
+    private final CoreRedis coreRedis;
+
+    public BindFilter(CoreRedis coreRedis) {
+        this.coreRedis = coreRedis;
+    }
 
     @PostConstruct
     void init() {
@@ -47,14 +53,9 @@ public class BindFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
         String serviceName = ServiceUtils.findServiceNameAndType(request);
-
         String requestIp = request.getRemoteAddr().trim();
-
-
         String rateBindKey = serviceName + "." + authentication.getPrincipal().getUsername() + "." + requestIp;
         PermissionDto permissionDto = authentication.getPermissions().get(serviceName);
-
-
         if (permissionDto == null) {
             SecurityContextHolder.getContext().setAuthentication(null);
             filterChain.doFilter(request, response);
@@ -74,6 +75,7 @@ public class BindFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
     private boolean validateRateMaxBind(String key, int maxBind) {
         Long maxBindCount = this.coreRedis.getUsage(key);
         if (maxBindCount == null) {
@@ -90,6 +92,7 @@ public class BindFilter extends OncePerRequestFilter {
 
     private int checkIpAuth(HttpServletRequest request, PermissionDto permissionDto, String requestIp) {
         String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);
+        LOGGER.debug("check Ip: serviceToken:{} , MaxBind:{}", serviceToken, permissionDto.getMaxBind());
         if (serviceToken == null && permissionDto.getMaxBind().get("0.0.0.0") == null) { //open add ips
             return permissionDto.getMaxBind().get(requestIp);
         }

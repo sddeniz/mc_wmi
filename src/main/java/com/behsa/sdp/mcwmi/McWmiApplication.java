@@ -14,10 +14,10 @@ public class McWmiApplication {
 
 
     public static void main(String[] args) {
-        System.out.println("ver 1.0.2 ----------- date:99/11/26 Ver 1.0.0");
-        LOGGER.info("add apiAuthUsername to json for said ");
+        LOGGER.info("ver 1.0.1 ----------- date:99/12/06 ");
         try {
-            ConfigurableApplicationContext context = SpringApplication.run(McWmiApplication.class, args);
+//            ConfigurableApplicationContext context =
+            SpringApplication.run(McWmiApplication.class, args);
         } catch (Exception ex) {
             LOGGER.error("main Edge have error", ex);
         }

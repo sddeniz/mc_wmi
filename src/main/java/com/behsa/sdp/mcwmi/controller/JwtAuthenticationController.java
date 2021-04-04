@@ -54,8 +54,7 @@ public class JwtAuthenticationController {
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
-//        coreRedis.cleanRedis();
-        try {
+         try {
 
             String username = authenticationRequest.getUsername();
             String password = pass(authenticationRequest.getPassword());
@@ -116,8 +115,9 @@ public class JwtAuthenticationController {
     }
 
 
-    private void cachePermissions() {
-
+    @RequestMapping(value = "/authenticate/clearRedis", method = RequestMethod.GET)
+    public void cachePermissions() {
+        coreRedis.cleanRedis();
     }
 
 }

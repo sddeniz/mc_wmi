@@ -8,6 +8,8 @@ public class TreeInfoDto implements Serializable {
     private String inputs;
     private String outputs;
 
+    public TreeInfoDto() {
+    }
 
     public  TreeInfoDto(long treeId, String inputs, String outputs) {
         this.treeId = treeId;

@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.behsa.sdp</groupId>
     <artifactId>Edge</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>Edge</name>
     <description>Demo project for Spring Boot</description>
 
