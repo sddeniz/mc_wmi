@@ -4,6 +4,8 @@ import com.behsa.sdp.mcwmi.redis.RedisUserDetailsService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import common.CoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,7 @@ import java.io.IOException;
  */
 @Configuration
 public class BeanConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeanConfig.class);
 
     @Value("${sdp.rabbitmq.host}")
     private String rabbitMqHost;
@@ -50,7 +53,7 @@ public class BeanConfig {
     private String logExchange;
 
     @Autowired
-    private   RedisUserDetailsService redisUserDetailsService;
+    private RedisUserDetailsService redisUserDetailsService;
 
     @Bean
     public SdpHelper getSdpHelper() {
@@ -87,18 +90,15 @@ public class BeanConfig {
         try {
             amqpHelper.declareExchange(logExchange, "direct");
         } catch (IOException e) {
-            System.out.println("can not declare logger exchange");
-            e.printStackTrace();
-        }
+            LOGGER.error("can not declare logger exchange");
+         }
         return amqpHelper;
     }
 
     @Bean
-    public void loadUserPermissions()
-    {
+    public void loadUserPermissions() {
         redisUserDetailsService.loadAllUserPermission();
     }
-
 
 
 }

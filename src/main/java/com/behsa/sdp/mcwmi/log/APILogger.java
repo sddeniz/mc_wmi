@@ -1,6 +1,6 @@
 package com.behsa.sdp.mcwmi.log;
 
-import com.behsa.sdp.mcwmi.utils.AppConfig;
+import com.behsa.sdp.mcwmi.config.DataBaseConfig;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ public class APILogger {
     private final Object lock = new Object();
 
     @Autowired
-    private AppConfig appConfig;
+    private DataBaseConfig dataBaseConfig;
     @Autowired
     private Gson gson;
 
@@ -48,7 +48,7 @@ public class APILogger {
             String str = this.gson.toJson(logModel);
             byte[] body = str.getBytes();
             synchronized (lock) {
-                amqpHelper.publish(this.appConfig.logExchange, this.appConfig.logRoutingKey, body);
+                amqpHelper.publish(this.dataBaseConfig.logExchange, this.dataBaseConfig.logRoutingKey, body);
             }
         } catch (Exception e) {
             logger.error("Error in send log" + this.gson.toJson(logModel), e);

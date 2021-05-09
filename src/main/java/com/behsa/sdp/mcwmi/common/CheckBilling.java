@@ -6,8 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CheckBilling {
-    //    private Map<String, AtomicBoolean> billServiceValidation;
-    @Autowired
+     @Autowired
     private BillRepository billRepository;
 
     public boolean billingCheck(String serviceTitle) {

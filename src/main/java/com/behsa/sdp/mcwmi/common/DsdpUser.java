@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.User;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class DsdpUser extends User {
+public class DsdpUser extends User   {
     private final Map<String, PermissionDto> permissions;
 
     public DsdpUser(String username, String password, Map<String, PermissionDto> permissions) {

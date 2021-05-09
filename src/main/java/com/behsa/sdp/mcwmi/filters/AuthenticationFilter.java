@@ -2,7 +2,7 @@ package com.behsa.sdp.mcwmi.filters;
 
 import com.behsa.sdp.mcwmi.common.DsdpAuthentication;
 import com.behsa.sdp.mcwmi.redis.CoreRedis;
-import com.behsa.sdp.mcwmi.repository.HeaderKey;
+import com.behsa.sdp.mcwmi.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +26,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
-        final String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);
+        final String authToken = request.getHeader(Constants.AuthenticationHeader);
+        final String serviceToken = request.getHeader(Constants.AuthenticationServiceHeader);
         if (authToken == null && serviceToken == null) {
-            LOGGER.warn("Token does not Authorization Header");
+//            LOGGER.warn("Token does not Authorization Header");
             chain.doFilter(request, response);
             return;
         }

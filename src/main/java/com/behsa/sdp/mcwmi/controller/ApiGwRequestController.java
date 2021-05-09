@@ -1,18 +1,24 @@
 package com.behsa.sdp.mcwmi.controller;
 
 import com.behsa.sdp.mcwmi.common.*;
-import com.behsa.sdp.mcwmi.dto.*;
+import com.behsa.sdp.mcwmi.dto.ApiInputDto;
+import com.behsa.sdp.mcwmi.dto.SessionDto;
+import com.behsa.sdp.mcwmi.dto.TreeGwDto;
+import com.behsa.sdp.mcwmi.dto.TreeInfoDto;
 import com.behsa.sdp.mcwmi.enums.ErrorApiGw;
 import com.behsa.sdp.mcwmi.enums.EventTypeEnums;
 import com.behsa.sdp.mcwmi.enums.ServiceTypeEnums;
 import com.behsa.sdp.mcwmi.log.APILogger;
 import com.behsa.sdp.mcwmi.repository.RestApiRepository;
 import com.behsa.sdp.mcwmi.repository.WebViewModel;
+import com.behsa.sdp.mcwmi.utils.Constants;
+import com.behsa.sdp.mcwmi.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import common.CoreException;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +36,6 @@ import sdpMsSdk.SdpHelper;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 
@@ -42,7 +43,7 @@ import java.util.UUID;
 public class ApiGwRequestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiGwRequestController.class);
-    private final String errorTemplatePage = "templateError";
+    private static final String errorTemplatePage = "templateError";
 
 
     @Autowired
@@ -71,6 +72,10 @@ public class ApiGwRequestController {
     @Autowired
     private APILogger apiLogger;
 
+    @Autowired
+    private Utils utils;
+
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
@@ -98,8 +103,9 @@ public class ApiGwRequestController {
                 return output;
             }
             String host = request.getServerName().trim();
-            LOGGER.info("------------------- > host:{} , ip:{}", host, request.getRemoteAddr());
 
+            String requestIp = utils.returnIp(request);
+            LOGGER.info("------------------- > host:{} , ip:{}", host, requestIp);
 
 
             if (validationBilling(serviceName)) {
@@ -109,8 +115,8 @@ public class ApiGwRequestController {
                 output.setResult(response);
                 return output;
             }
-            //todo validationInputService();
-            TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);//todo mojtaba
+
+            TreeInfoDto infoDtoCache = cacheTreeGw.getHashMap(serviceName);
 
             TreeGwDto treeGwDto = configurationTreeGw(serviceName, ServiceTypeEnums.rest.getCode(), version, host);//type make enum ,
             TreeInfoDto treeInfoDto = restApiRepository.getTreeId(treeGwDto);
@@ -122,7 +128,7 @@ public class ApiGwRequestController {
             boolean haveTree = validationInputService.isHaveTree(treeInfoDto);
             if (!haveTree) {
                 ResponseEntity<JSONObject> response = errorResponse("Service is wrong or is not Active", trackCode, HttpStatus.NOT_FOUND);
-                LOGGER.debug("Service is wrong , payload:{}  , treeInfoDto:{}  , trackCode:{}", payload, treeInfoDto, trackCode);
+                LOGGER.debug("Service is wrong , payload:{}  , treeInfoDto:{}  , trackCode:{}", payload, treeInfoDto.toString(), trackCode);
                 output.setResult(response);
                 return output;
             }
@@ -153,7 +159,7 @@ public class ApiGwRequestController {
             this.apiLogger.insert(serviceName,
                     trackCode,
                     EventTypeEnums.sendToWorker.getValue(),
-                    "Trace",
+                    Constants.LogInfo,
                     version,
                     serviceName,
                     "",
@@ -167,7 +173,7 @@ public class ApiGwRequestController {
             this.apiLogger.insert(serviceName,
                     trackCode,
                     EventTypeEnums.sendToWorker.getValue(),
-                    "Trace",
+                    Constants.LogInfo,
                     version,
                     serviceName,
                     "",
@@ -198,7 +204,7 @@ public class ApiGwRequestController {
         try {
             if (checkVersion(version)) {
                 LOGGER.debug("version is null or empty  , payload:{}  ,   trackCode:{}", payload, trackCode);
-                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.versionWeb.getValue())));
+                output.setResult(new ModelAndView(errorTemplatePage, Constants.ModelError, new WebViewModel(ErrorApiGw.versionWeb.getValue())));
                 return output;
             }
             String host = request.getServerName().trim();
@@ -207,7 +213,7 @@ public class ApiGwRequestController {
             if (validationBilling(serviceName)) {
                 LOGGER.debug("Service is block by billing  , payload:{}  , serviceName:{}  , trackCode:{}"
                         , payload, serviceName, trackCode);
-                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.billingWeb.getValue())));
+                output.setResult(new ModelAndView(errorTemplatePage, Constants.ModelError, new WebViewModel(ErrorApiGw.billingWeb.getValue())));
                 return output;
             }
 
@@ -222,16 +228,15 @@ public class ApiGwRequestController {
 
             boolean haveTree = validationInputService.isHaveTree(treeInfoDto);
             if (!haveTree) {
-                String response = "<html><body><h1>Erorr,Service is wrong or is not Active !</h1></body></html>";//todo clean
                 LOGGER.debug("Service is wrong , payload:{}  , treeInfoDto:{}  , trackCode:{}", payload, treeInfoDto, trackCode);
-                output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.serviceWeb.getValue())));
+                output.setResult(new ModelAndView(errorTemplatePage, Constants.ModelError, new WebViewModel(ErrorApiGw.serviceWeb.getValue())));
                 return output;
             }
 
             JSONObject mapPayLoad = mapPayLoad(treeInfoDto, payload);
             if (mapPayLoad.isEmpty()) {
                 LOGGER.debug("can not mach input and tree Info , payload:{}  , treeInfoDto:{}  , trackCode:{}"
-                        , payload, treeInfoDto.toString(), trackCode);
+                        , payload, treeInfoDto, trackCode);
                 output.setResult(new ModelAndView(errorTemplatePage, "errorModel", new WebViewModel(ErrorApiGw.inputWeb.getValue())));
                 return output;
             }
@@ -248,7 +253,7 @@ public class ApiGwRequestController {
                     serviceName,
                     serviceUtils.getServiceInstanceKey(), mapPayLoad, null, trackCode);
 
-            LOGGER.info("***************** send Success , instanceKey:{} ***************** " ,serviceUtils.getServiceInstanceKey() );
+            LOGGER.info("***************** send Success , instanceKey:{} ***************** ", serviceUtils.getServiceInstanceKey());
 
             this.apiLogger.insert(serviceName,
                     trackCode,
@@ -383,36 +388,13 @@ public class ApiGwRequestController {
     }
 
 
-    public void cacheMatchTopUp(String urls) throws IOException {
-        // TODO: 1/16/2021 check this
-        URL url = new URL(urls);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "application/json");
-        if (conn.getResponseCode() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : "
-                    + conn.getResponseCode());
-        }
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(
-                (conn.getInputStream())));
-
-        String output;
-        LOGGER.info("Output from Server .... \n");
-        while ((output = br.readLine()) != null) {
-            LOGGER.info(output);
-        }
-
-
-    }
-
     //--------------------------------
     @PostMapping(value = "/api/response/{trackCode}")
     public @ResponseBody
     DeferredResult<ResponseEntity<?>> responseSync(@PathVariable("trackCode") String trackCode,
                                                    @RequestParam("key") String apiKey,
                                                    @RequestBody JSONObject payload,
-                                                   HttpServletRequest request) throws Exception {
+                                                   HttpServletRequest request) throws CoreException {
         DeferredResult<ResponseEntity<?>> output = new DeferredResult<>();
         SessionDto session = sessionManager.getSession(trackCode);
         session.setRestDeferredResult(output);
@@ -420,25 +402,4 @@ public class ApiGwRequestController {
         return output;
     }
 
-    @PostMapping(value = "/trigger/{channelName}/{triggerName}")
-    public @ResponseBody
-    ResponseEntity<TriggerAsyncResponseDto> triggerAsync(@PathVariable("channelName") String
-                                                                   channelName, @PathVariable("triggerName") String triggerName,
-                                                         @RequestBody JSONObject payload, HttpServletRequest request) throws Exception {
-        String trackCode = "";
-        try {
-            trackCode = sdpHelper.sendStartProcess(channelName, triggerName, null, payload, null);
-            if (trackCode == null || trackCode.equals("")) {
-                throw new Exception("خطا در ثبت درخواست");
-            }
-             return new ResponseEntity<>(new TriggerAsyncResponseDto("ORDINARY", trackCode, null),
-                    HttpStatus.OK);
-        } catch (Exception e) {
-            JSONObject jo = new JSONObject();
-            jo.put("errorCode", 1);
-            jo.put("errorMessage", "خطا در ثبت درخواست");
-            return new ResponseEntity<>(new TriggerAsyncResponseDto("ERROR", trackCode, jo),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }

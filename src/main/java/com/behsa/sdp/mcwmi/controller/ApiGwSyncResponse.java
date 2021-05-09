@@ -110,6 +110,7 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
     private JSONObject wrapperOutPut(String serviceName, JSONObject jsonObject) throws JsonProcessingException {
         TreeInfoDto treeInfoDto = cacheRestAPI.getHashMap(serviceName);//todo edit this.
         LOGGER.debug("----------------------- Response tree:{} ", jsonObject != null ? jsonObject.toJSONString() : null);
+
         ApiOutputDto[] outPutDto = objectMapper.readValue(treeInfoDto.getOutputs(), ApiOutputDto[].class);
         JSONObject apiJsonObjWrapper = new JSONObject();
         if (outPutDto == null || outPutDto.length == 0) {
@@ -122,7 +123,9 @@ public class ApiGwSyncResponse implements ISdpHandlerAsync {
             } else if (output.getType().equals(String.valueOf(ActionFieldValueType.Object)) && output.getExpose().equals("true")) {
                 apiJsonObjWrapper = jsonObject;
             } else if (output.getExpose().equals("true")) {
-                apiJsonObjWrapper.put(output.getTitle(), jsonObject.get(output.getName()));
+
+                Object os = jsonObject == null ? null : jsonObject.get(output.getName()).toString().replace("$$$##$$$", "="); /*just for url */
+                apiJsonObjWrapper.put(output.getTitle(), os);
             } else {
                 apiJsonObjWrapper.put(output.getTitle(), output.getDefaultValue());
             }

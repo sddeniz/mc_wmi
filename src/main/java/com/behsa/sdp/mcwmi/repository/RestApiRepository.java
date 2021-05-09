@@ -59,28 +59,22 @@ public class RestApiRepository {
      * @return
      */
     public TreeInfoDto getTreeId(TreeGwDto treeGwDto) {
-        String command = "select * from VW_TreeGw tr  where tr.type=? and tr.verApi=?  and  tr.GETWAYNAME=? and tr.domain=? and tr.state=1";
-        LOGGER.debug("input for find Tree: type:{} , verApi:{} , getwayname:{} , domain:{} ,and show Actives "
+        String commandTreeInfo = "select * from VW_TreeGw tr  where tr.type=? and tr.verApi=?  and  tr.GETWAYNAME=? and tr.domain=? and tr.state=1";
+         LOGGER.debug("input for find Tree: type:{} , verApi:{} , getwayname:{} , domain:{} ,and show Actives "
                 , treeGwDto.getType(), treeGwDto.getVersion(), treeGwDto.getTitle(), treeGwDto.getDomain());
 
         try (Connection connection = connectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(command)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(commandTreeInfo)) {
             preparedStatement.setInt(1, treeGwDto.getType());
             preparedStatement.setString(2, treeGwDto.getVersion());
             preparedStatement.setString(3, treeGwDto.getTitle());
-//            preparedStatement.setString(4, treeGwDto.getDomain());
+            preparedStatement.setString(4, treeGwDto.getDomain());
 
-
-            TreeInfoDto treeInfoDtoResult = new TreeInfoDto();
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                if (resultSet.getString("DOMAIN").equals("all")) {
-                    return new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"), resultSet.getString("OUTPUTS"));
-                }
-                treeInfoDtoResult = new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"), resultSet.getString("OUTPUTS"));
+                 return new TreeInfoDto(resultSet.getLong("TREEID"), resultSet.getString("INPUTS"), resultSet.getString("OUTPUTS"));
             }
             LOGGER.debug("can not find Treee");
-            return treeInfoDtoResult;
         } catch (SQLException e) {
             LOGGER.error("SQL Error For Find Tree ", e);
         } catch (Exception ex) {

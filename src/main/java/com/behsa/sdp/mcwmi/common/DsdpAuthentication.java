@@ -5,10 +5,11 @@ import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import org.springframework.security.core.Authentication;
 
 import javax.security.auth.Subject;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class DsdpAuthentication implements Authentication {
+public class DsdpAuthentication implements Serializable, Authentication {
     private static final long serialVersionUID = 3781835596190060415L;
     private final DsdpUser principal;
     private List<Authority> authorities;

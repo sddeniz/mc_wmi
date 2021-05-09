@@ -4,12 +4,14 @@ import com.behsa.sdp.mcwmi.common.DsdpAuthentication;
 import com.behsa.sdp.mcwmi.common.ServiceUtils;
 import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import com.behsa.sdp.mcwmi.redis.CoreRedis;
-import com.behsa.sdp.mcwmi.repository.HeaderKey;
+import com.behsa.sdp.mcwmi.utils.Constants;
+import com.behsa.sdp.mcwmi.utils.Utils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +32,9 @@ public class BindFilter extends OncePerRequestFilter {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private final CoreRedis coreRedis;
+
+    @Autowired
+    private Utils utils;
 
     public BindFilter(CoreRedis coreRedis) {
         this.coreRedis = coreRedis;
@@ -53,7 +58,7 @@ public class BindFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         DsdpAuthentication authentication = (DsdpAuthentication) SecurityContextHolder.getContext().getAuthentication();
         String serviceName = ServiceUtils.findServiceNameAndType(request);
-        String requestIp = request.getRemoteAddr().trim();
+        String requestIp = utils.returnIp(request);// request.getRemoteAddr().trim();
         String rateBindKey = serviceName + "." + authentication.getPrincipal().getUsername() + "." + requestIp;
         PermissionDto permissionDto = authentication.getPermissions().get(serviceName);
         if (permissionDto == null) {
@@ -91,7 +96,7 @@ public class BindFilter extends OncePerRequestFilter {
     }
 
     private int checkIpAuth(HttpServletRequest request, PermissionDto permissionDto, String requestIp) {
-        String serviceToken = request.getHeader(HeaderKey.AuthenticationServiceHeader);
+        String serviceToken = request.getHeader(Constants.AuthenticationServiceHeader);
         LOGGER.debug("check Ip: serviceToken:{} , MaxBind:{}", serviceToken, permissionDto.getMaxBind());
         if (serviceToken == null && permissionDto.getMaxBind().get("0.0.0.0") == null) { //open add ips
             return permissionDto.getMaxBind().get(requestIp);

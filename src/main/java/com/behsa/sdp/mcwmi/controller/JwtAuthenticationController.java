@@ -3,6 +3,7 @@ package com.behsa.sdp.mcwmi.controller;
 
 import com.behsa.sdp.mcwmi.common.DsdpAuthentication;
 import com.behsa.sdp.mcwmi.common.DsdpUser;
+import com.behsa.sdp.mcwmi.utils.Constants;
 import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import com.behsa.sdp.mcwmi.redis.CoreRedis;
 import com.behsa.sdp.mcwmi.redis.RedisUserDetailsService;
@@ -88,7 +89,7 @@ public class JwtAuthenticationController {
                 return ResponseEntity.ok(new JwtResponse(""));
             }
 
-            final String authToken = request.getHeader(HeaderKey.AuthenticationHeader);
+            final String authToken = request.getHeader(Constants.AuthenticationHeader);
             DsdpAuthentication authentication = this.coreRedis.getAuthentication(authToken);
             if (authentication == null) {
                 LOGGER.warn("serviceToken response from redis,authentication is null ");

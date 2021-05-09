@@ -1,4 +1,4 @@
-package com.behsa.sdp.mcwmi.utils;
+package com.behsa.sdp.mcwmi.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AppConfig {
+public class DataBaseConfig {
 
 
 
