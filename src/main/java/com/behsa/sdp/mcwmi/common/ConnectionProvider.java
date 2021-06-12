@@ -13,6 +13,8 @@ public class ConnectionProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionProvider.class);
     private final DataBaseConfig config;
+    private HikariDataSource dataSource;
+
 
     public ConnectionProvider(DataBaseConfig config) {
         this.config = config;
@@ -20,10 +22,10 @@ public class ConnectionProvider {
 
 
     public Connection getConnection() throws Exception {
-
-        try (HikariDataSource dataSource = config.createHikariConnection()) {
+        try {
+            this.dataSource = config.createHikariConnection();
             return dataSource.getConnection();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("getConnection", ex);
             Thread.sleep(config.connectionErrorDelayTime());
             throw new Exception("Error in get connection", ex);

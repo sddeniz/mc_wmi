@@ -16,8 +16,7 @@ public class McWmiApplication {
     public static void main(String[] args) {
         LOGGER.info("ver 1.0.1 ----------- date:99/12/06 ");
         try {
-          ConfigurableApplicationContext context =
-            SpringApplication.run(McWmiApplication.class, args);
+            ConfigurableApplicationContext context = SpringApplication.run(McWmiApplication.class, args);
         } catch (Exception ex) {
             LOGGER.error("main Edge have error", ex);
         }

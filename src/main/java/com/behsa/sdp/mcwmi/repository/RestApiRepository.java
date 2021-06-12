@@ -34,9 +34,10 @@ public class RestApiRepository {
     @Autowired
     private Gson gson;
 
-    public List<Recipe> getRestApiRepository() throws CoreException {
+   /* public List<Recipe> getRestApiRepository() throws CoreException {
         List<Recipe> recipe = new ArrayList<>(); //todo edit this
-        try (Connection connection = connectionProvider.getConnection(); Statement statement = connection.createStatement()) {
+        try (Connection connection = connectionProvider.getConnection();
+             Statement statement = connection.createStatement()) {
 
             ResultSet result = statement.executeQuery("SELECT * FROM VW_RECIPE_FOR_USSD");
             if (result.next()) {
@@ -51,7 +52,7 @@ public class RestApiRepository {
         }
 
         return recipe;
-    }
+    }*/
 
     /**
      * find tree by domain name and service name and type and version if Active
