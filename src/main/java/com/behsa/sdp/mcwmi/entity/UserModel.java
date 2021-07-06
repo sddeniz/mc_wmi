@@ -1,4 +1,4 @@
-package com.behsa.sdp.mcwmi.repository;
+package com.behsa.sdp.mcwmi.entity;
 
 
 import javax.persistence.*;

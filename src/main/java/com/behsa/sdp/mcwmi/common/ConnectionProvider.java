@@ -18,12 +18,12 @@ public class ConnectionProvider {
 
     public ConnectionProvider(DataBaseConfig config) {
         this.config = config;
+        this.dataSource = config.createHikariConnection();
     }
 
 
     public Connection getConnection() throws Exception {
         try {
-            this.dataSource = config.createHikariConnection();
             return dataSource.getConnection();
         } catch (Exception ex) {
             LOGGER.error("getConnection", ex);

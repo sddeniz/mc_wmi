@@ -3,11 +3,14 @@ package com.behsa.sdp.mcwmi.controller;
 
 import com.behsa.sdp.mcwmi.common.DsdpAuthentication;
 import com.behsa.sdp.mcwmi.common.DsdpUser;
+import com.behsa.sdp.mcwmi.dto.JwtRequest;
+import com.behsa.sdp.mcwmi.dto.JwtResponse;
+import com.behsa.sdp.mcwmi.dto.SaltTokenResponse;
+import com.behsa.sdp.mcwmi.entity.UserModel;
 import com.behsa.sdp.mcwmi.utils.Constants;
 import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import com.behsa.sdp.mcwmi.redis.CoreRedis;
 import com.behsa.sdp.mcwmi.redis.RedisUserDetailsService;
-import com.behsa.sdp.mcwmi.repository.*;
 import common.EncryptUtil;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -55,7 +58,7 @@ public class JwtAuthenticationController {
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
-         try {
+        try {
 
             String username = authenticationRequest.getUsername();
             String password = pass(authenticationRequest.getPassword());

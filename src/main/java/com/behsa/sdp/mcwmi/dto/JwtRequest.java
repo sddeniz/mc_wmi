@@ -1,4 +1,4 @@
-package com.behsa.sdp.mcwmi.repository;
+package com.behsa.sdp.mcwmi.dto;
 
 import java.io.Serializable;
 

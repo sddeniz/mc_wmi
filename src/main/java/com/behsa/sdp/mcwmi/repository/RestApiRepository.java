@@ -5,6 +5,7 @@ import com.behsa.sdp.mcwmi.dto.MaxBind;
 import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import com.behsa.sdp.mcwmi.dto.TreeGwDto;
 import com.behsa.sdp.mcwmi.dto.TreeInfoDto;
+import com.behsa.sdp.mcwmi.entity.UserModel;
 import com.behsa.sdp.mcwmi.enums.ServiceTypeEnums;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

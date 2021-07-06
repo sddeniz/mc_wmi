@@ -1,5 +1,6 @@
 package com.behsa.sdp.mcwmi.repository;
 
+import com.behsa.sdp.mcwmi.entity.UserModel;
 import oracle.sql.DATE;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

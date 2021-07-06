@@ -5,7 +5,7 @@ import com.behsa.sdp.mcwmi.dto.PermissionDto;
 import com.behsa.sdp.mcwmi.dto.PermissionDtoList;
 import com.behsa.sdp.mcwmi.repository.IUserRepository;
 import com.behsa.sdp.mcwmi.repository.RestApiRepository;
-import com.behsa.sdp.mcwmi.repository.UserModel;
+import com.behsa.sdp.mcwmi.entity.UserModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
