@@ -33,8 +33,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private DsdpAuthenticationProvider authProvider;
 
-    @Autowired
-    private BindFilter bindFilter;
+//    @Autowired
+//    private BindFilter bindFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -80,8 +80,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
  *   Add a filter to validate the tokens with every request
  */
         httpSecurity.addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        httpSecurity.addFilterAt(bindFilter, AuthenticationFilter.class);
-        httpSecurity.addFilterAfter(authorizationFilter, BindFilter.class);
+//        httpSecurity.addFilterAt(bindFilter, AuthenticationFilter.class);
+        httpSecurity.addFilterAfter(authorizationFilter, AuthenticationFilter.class);
 
     }
 

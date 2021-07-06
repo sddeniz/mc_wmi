@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
+//@Component
 public class BindFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(BindFilter.class);
 
