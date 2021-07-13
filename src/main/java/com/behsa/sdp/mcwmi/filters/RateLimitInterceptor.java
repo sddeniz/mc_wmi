@@ -57,11 +57,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             redisTpd = rateLimitService.addTpd(rateKeyTpd);
         }
 
-        boolean limitations = rateLimitService.checkAndUpdateLimitation(rateKeyTps, rateKeyTpd, redisTps, redisTpd, permissionDto.getTpd(), permissionDto.getTps());
-        if (!limitations) {
-            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
-            return false;
-        }
+//        boolean limitations = rateLimitService.checkAndUpdateLimitation(rateKeyTps, rateKeyTpd, redisTps, redisTpd, permissionDto.getTpd(), permissionDto.getTps());
+//        if (!limitations) {
+//            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
+//            return false;
+//        }
         return true;
     }
 
