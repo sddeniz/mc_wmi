@@ -48,7 +48,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
         Long redisTps = rateLimitService.getTpsTpd(rateKeyTps);
         Long redisTpd = rateLimitService.getTpsTpd(rateKeyTpd);
-
+        logger.debug("Rate limit for service {} , current tps {} tpd {}", serviceName, redisTps, redisTpd);
         if (redisTps == null || redisTps == 0) {
             redisTps = rateLimitService.addTps(rateKeyTps);
         }
@@ -57,16 +57,13 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             redisTpd = rateLimitService.addTpd(rateKeyTpd);
         }
 
-//        boolean limitations = rateLimitService.checkAndUpdateLimitation(rateKeyTps, rateKeyTpd, redisTps, redisTpd, permissionDto.getTpd(), permissionDto.getTps());
-//        if (!limitations) {
-//            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
-//            return false;
-//        }
+        boolean limitations = rateLimitService.checkAndUpdateLimitation(rateKeyTps, rateKeyTpd, redisTps, redisTpd, permissionDto.getTpd(), permissionDto.getTps());
+        if (!limitations) {
+            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value());
+            return false;
+        }
         return true;
     }
-
-
-
 
 
 }
