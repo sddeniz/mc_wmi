@@ -4,6 +4,8 @@ import com.behsa.sdp.mcwmi.redis.RedisUserDetailsService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import common.CoreException;
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +93,7 @@ public class BeanConfig {
             amqpHelper.declareExchange(logExchange, "direct");
         } catch (IOException e) {
             LOGGER.error("can not declare logger exchange");
-         }
+        }
         return amqpHelper;
     }
 
@@ -101,4 +103,10 @@ public class BeanConfig {
     }
 
 
+    @Bean
+    public TimedAspect timedAspect(MeterRegistry registry) {
+        return new TimedAspect(registry);
+
+
+    }
 }
